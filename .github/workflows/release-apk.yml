@@ -45,7 +45,7 @@ jobs:
           fi
           export PATH="$PATH:/opt/flutter/bin"
           flutter --version
-          flutter doctor -v
+          flutter doctor
 
       - name: 清理并安装 Flutter 依赖
         run: |
@@ -60,11 +60,12 @@ jobs:
           flutter pub deps
           cat pubspec.yaml
           ls -la packages/fijkplayer/
+          flutter test -h
 
       - name: 运行测试
         run: |
           export PATH="$PATH:/opt/flutter/bin"
-          flutter test
+          flutter test # 移除 --platform=linux，使用默认 Dart VM
 
       - name: 从 pubspec.yaml 提取版本号
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
