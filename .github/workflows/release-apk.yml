@@ -40,34 +40,29 @@ jobs:
       # 获取依赖
       - name: Install dependencies
         run: flutter pub get
-        working-directory: ./xlist
 
       # 运行代码格式检查
       - name: Check code formatting
         run: dart format --set-exit-if-changed .
-        working-directory: ./xlist
 
       # 运行静态分析
       - name: Run analyzer
         run: flutter analyze
-        working-directory: ./xlist
 
       # 运行测试
       - name: Run tests
         run: flutter test
-        working-directory: ./xlist
 
       # 构建 Android Release APK
       - name: Build Release APK
         run: flutter build apk --release
-        working-directory: ./xlist
 
       # 上传构建产物
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
-          path: xlist/build/app/outputs/flutter-apk/app-release.apk
+          path: build/app/outputs/flutter-apk/app-release.apk
 
       # 创建或覆盖 GitHub Release
       - name: Create or Overwrite Release
@@ -78,7 +73,7 @@ jobs:
           name: Latest Release
           draft: false
           prerelease: false
-          files: xlist/build/app/outputs/flutter-apk/app-release.apk
+          files: build/app/outputs/flutter-apk/app-release.apk
           fail_on_unmatched_files: true
           overwrite: true
         env:
