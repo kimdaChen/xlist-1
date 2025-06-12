@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       force_release:
-        description: 'Force overwrite existing release'
+        description: '强制覆盖现有发布'
         required: false
         default: 'false'
         type: boolean
@@ -19,18 +19,20 @@ jobs:
 
     steps:
       # 检出代码
-      - name: Checkout code
+      - name: 检出代码
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整历史以便提交更改
 
       # 设置 Java 环境
-      - name: Setup Java
+      - name: 设置 Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
       # 设置 Flutter 环境
-      - name: Setup Flutter
+      - name: 设置 Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.x'
@@ -38,39 +40,49 @@ jobs:
           cache: true
 
       # 获取依赖
-      - name: Install dependencies
+      - name: 安装依赖
         run: flutter pub get
 
-      # 运行代码格式检查
-      - name: Check code formatting
-        run: dart format --set-exit-if-changed .
+      # 格式化代码并提交更改
+      - name: 格式化代码
+        run: |
+          dart format .
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          if git status --porcelain | grep .; then
+            git add .
+            git commit -m "CI: 自动格式化代码"
+            git push
+          else
+            echo "没有需要格式化的文件"
+          fi
 
       # 运行静态分析
-      - name: Run analyzer
+      - name: 运行静态分析
         run: flutter analyze
 
       # 运行测试
-      - name: Run tests
+      - name: 运行测试
         run: flutter test
 
       # 构建 Android Release APK
-      - name: Build Release APK
+      - name: 构建 Release APK
         run: flutter build apk --release
 
       # 上传构建产物
-      - name: Upload APK
+      - name: 上传 APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
 
       # 创建或覆盖 GitHub Release
-      - name: Create or Overwrite Release
+      - name: 创建或覆盖 Release
         if: github.event_name == 'workflow_dispatch' && inputs.force_release == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest-release
-          name: Latest Release
+          name: 最新发布
           draft: false
           prerelease: false
           files: build/app/outputs/flutter-apk/app-release.apk
