@@ -1,75 +1,69 @@
-name: Build and Release APK
+name: Flutter CI
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
-  workflow_dispatch:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+      # 检出代码
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # 添加这行以获取完整的 git 历史
 
-      - name: Set up Java
+      # 设置 Java 环境 (Flutter Android 构建需要)
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: '17'
-          cache: 'gradle'  # 添加缓存以加速构建
 
-      - name: Set up Flutter
+      # 设置 Flutter 环境
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.0'
-          cache: true  # 启用 Flutter 依赖缓存
+          flutter-version: '3.24.x'  # 使用最新稳定版本，可以根据需要调整
+          channel: 'stable'
+          cache: true
 
+      # 获取依赖
       - name: Install dependencies
-        run: |
-          flutter clean
-          flutter pub get
+        run: flutter pub get
+        working-directory: ./xlist
 
+      # 运行代码格式检查
+      - name: Check code formatting
+        run: dart format --set-exit-if-changed .
+        working-directory: ./xlist
+
+      # 运行静态分析
+      - name: Run analyzer
+        run: flutter analyze
+        working-directory: ./xlist
+
+      # 运行测试
+      - name: Run tests
+        run: flutter test
+        working-directory: ./xlist
+
+      # 构建 Android APK
       - name: Build APK
-        run: |
-          flutter build apk --release --split-per-abi
-        
-      - name: Upload APK Artifacts
+        run: flutter build apk --debug
+        working-directory: ./xlist
+
+      # 构建 iOS (仅在 macOS 运行器上)
+      - name: Build iOS
+        if: runner.os == 'macOS'
+        run: flutter build ios --no-codesign
+        working-directory: ./xlist
+
+      # 上传构建产物（可选）
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: release-apks
-          path: |
-            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
-            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-            build/app/outputs/flutter-apk/app-x86_64-release.apk
-          retention-days: 5
-
-      - name: Get version
-        id: get_version
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            VERSION=$(grep '^version:' pubspec.yaml | head -1 | awk '{print $2}' | cut -d'+' -f1)
-            echo "version=v${VERSION}" >> $GITHUB_OUTPUT
-          else
-            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        if: success()
-        with:
-          tag_name: ${{ steps.get_version.outputs.version }}
-          name: Release ${{ steps.get_version.outputs.version }}
-          files: |
-            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
-            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-            build/app/outputs/flutter-apk/app-x86_64-release.apk
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: app-apk
+          path: xlist/build/app/outputs/flutter-apk/app-debug.apk
