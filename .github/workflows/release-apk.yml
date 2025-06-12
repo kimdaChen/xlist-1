@@ -5,6 +5,13 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      force_release:
+        description: 'Force overwrite existing release'
+        required: false
+        default: 'false'
+        type: boolean
 
 jobs:
   build:
@@ -15,7 +22,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 设置 Java 环境 (Flutter Android 构建需要)
+      # 设置 Java 环境
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -26,7 +33,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.x'  # 使用最新稳定版本，可以根据需要调整
+          flutter-version: '3.24.x'
           channel: 'stable'
           cache: true
 
@@ -50,20 +57,29 @@ jobs:
         run: flutter test
         working-directory: ./xlist
 
-      # 构建 Android APK
-      - name: Build APK
-        run: flutter build apk --debug
+      # 构建 Android Release APK
+      - name: Build Release APK
+        run: flutter build apk --release
         working-directory: ./xlist
 
-      # 构建 iOS (仅在 macOS 运行器上)
-      - name: Build iOS
-        if: runner.os == 'macOS'
-        run: flutter build ios --no-codesign
-        working-directory: ./xlist
-
-      # 上传构建产物（可选）
+      # 上传构建产物
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-apk
-          path: xlist/build/app/outputs/flutter-apk/app-debug.apk
+          name: app-release-apk
+          path: xlist/build/app/outputs/flutter-apk/app-release.apk
+
+      # 创建或覆盖 GitHub Release
+      - name: Create or Overwrite Release
+        if: github.event_name == 'workflow_dispatch' && inputs.force_release == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-release
+          name: Latest Release
+          draft: false
+          prerelease: false
+          files: xlist/build/app/outputs/flutter-apk/app-release.apk
+          fail_on_unmatched_files: true
+          overwrite: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
