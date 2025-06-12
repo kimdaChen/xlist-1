@@ -13,47 +13,63 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 添加这行以获取完整的 git 历史
 
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
+          cache: 'gradle'  # 添加缓存以加速构建
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.0'   # 请根据你项目实际 Flutter 版本调整
+          flutter-version: '3.22.0'
+          cache: true  # 启用 Flutter 依赖缓存
 
       - name: Install dependencies
-        run: flutter pub get
+        run: |
+          flutter clean
+          flutter pub get
 
       - name: Build APK
-        run: flutter build apk --release
-
-      - name: Upload APK Artifact
+        run: |
+          flutter build apk --release --split-per-abi
+        
+      - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: app-release.apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: release-apks
+          path: |
+            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+            build/app/outputs/flutter-apk/app-x86_64-release.apk
+          retention-days: 5
 
-      - name: Get tag name
-        id: get_tag
+      - name: Get version
+        id: get_version
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG="v$(grep '^version:' pubspec.yaml | head -1 | awk '{print $2}' | cut -d'+' -f1)"
+            VERSION=$(grep '^version:' pubspec.yaml | head -1 | awk '{print $2}' | cut -d'+' -f1)
+            echo "version=v${VERSION}" >> $GITHUB_OUTPUT
           else
-            TAG="${GITHUB_REF##*/}"
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
           fi
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-      - name: Create or Update GitHub Release
+      - name: Create Release
         uses: softprops/action-gh-release@v2
+        if: success()
         with:
-          tag_name: ${{ steps.get_tag.outputs.tag }}
-          name: ${{ steps.get_tag.outputs.tag }}
-          files: build/app/outputs/flutter-apk/app-release.apk
-          overwrite: true   # 允许覆盖已有 Release 附件
+          tag_name: ${{ steps.get_version.outputs.version }}
+          name: Release ${{ steps.get_version.outputs.version }}
+          files: |
+            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+            build/app/outputs/flutter-apk/app-x86_64-release.apk
+          draft: false
+          prerelease: false
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
