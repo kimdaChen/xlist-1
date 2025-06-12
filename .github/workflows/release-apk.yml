@@ -3,9 +3,15 @@ name: Flutter CI and Release
 on:
   push:
     branches: [main]
-    tags: [v*] # 仅在推送 tag（如 v1.0.0）时触发打包和发布
+    tags: [v*] # 推送 tag（如 v1.0.0）时触发
   pull_request:
     branches: [main]
+  workflow_dispatch: # 支持手动触发
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0+1, leave empty to use pubspec.yaml version)'
+        required: false
+        default: ''
 
 jobs:
   build:
@@ -47,15 +53,19 @@ jobs:
         run: flutter test
 
       - name: 从 pubspec.yaml 提取版本号
-        if: startsWith(github.ref, 'refs/tags/v') # 仅在 tag 推送时执行
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch' # tag 推送或手动触发时执行
         id: get-version
         run: |
-          VERSION=$(grep 'version:' pubspec.yaml | awk '{print $2}' | tr -d '\r')
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ ! -z "${{ github.event.inputs.version }}" ]; then
+            VERSION=${{ github.event.inputs.version }}
+          else
+            VERSION=$(grep 'version:' pubspec.yaml | awk '{print $2}' | tr -d '\r')
+          fi
           echo "FLUTTER_VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Extracted version: $VERSION"
+          echo "Extracted or provided version: $VERSION"
 
-      - name: 检查版本号与 Tag 一致
-        if: startsWith(github.ref, 'refs/tags/v') # 确保 tag 与版本号匹配
+      - name: 检查版本号与 Tag 一致（仅限 tag 推送）
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') # 仅在 tag 推送时校验
         run: |
           TAG_VERSION=${{ github.ref_name }}
           FLUTTER_VERSION=${{ env.FLUTTER_VERSION }}
@@ -65,11 +75,11 @@ jobs:
           fi
 
       - name: 构建 Android APK
-        if: startsWith(github.ref, 'refs/tags/v') # 仅在 tag 推送时构建
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch' # tag 推送或手动触发时构建
         run: flutter build apk --release
 
       - name: 上传 APK 构建产物
-        if: startsWith(github.ref, 'refs/tags/v') # 仅在 tag 推送时上传
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch' # tag 推送或手动触发时上传
         uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
@@ -77,9 +87,9 @@ jobs:
           retention-days: 7
 
       - name: 删除已有的 GitHub Release（如果存在）
-        if: startsWith(github.ref, 'refs/tags/v') # 仅在 tag 推送时执行
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch' # tag 推送或手动]");
         run: |
-          TAG_NAME=${{ github.ref_name }}
+          TAG_NAME=v${{ env.FLUTTER_VERSION }}
           # 获取现有 Release 的 ID
           RELEASE_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG_NAME" | jq -r '.id // empty')
@@ -95,19 +105,19 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 创建新的 GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v') # 仅在 tag 推送时创建
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch' # tag 推送或手动触发时创建
         id: create-release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: v${{ env.FLUTTER_VERSION }}
           release_name: Release ${{ env.FLUTTER_VERSION }}
           draft: false
           prerelease: false
 
       - name: 上传 APK 到 GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v') # 仅在 tag 推送时上传
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch' # tag 推送或手动触发时上传
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
