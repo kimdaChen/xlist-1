@@ -2,91 +2,45 @@ name: Flutter CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
-  workflow_dispatch:
-    inputs:
-      force_release:
-        description: '强制覆盖现有发布'
-        required: false
-        default: 'false'
-        type: boolean
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 检出代码
       - name: 检出代码
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # 获取完整历史以便提交更改
 
-      # 设置 Java 环境
-      - name: 设置 Java
+      - name: 设置 Java 环境
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
           java-version: '17'
+          distribution: 'temurin'
 
-      # 设置 Flutter 环境
-      - name: 设置 Flutter
+      - name: 缓存 Flutter 依赖
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            /opt/hostedtoolcache/flutter
+          key: flutter-${{ runner.os }}-3.24.0-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            flutter-${{ runner.os }}-3.24.0-
+            flutter-${{ runner.os }}-
+
+      - name: 设置 Flutter 环境
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.x'
-          channel: 'stable'
+          flutter-version: 3.24.0
+          channel: stable
           cache: true
+          architecture: x64
 
-      # 获取依赖
-      - name: 安装依赖
+      - name: 安装 Flutter 依赖
         run: flutter pub get
 
-      # 格式化代码并提交更改
-      - name: 格式化代码
-        run: |
-          dart format .
-          git config user.name "GitHub Actions Bot"
-          git config user.email "actions@github.com"
-          if git status --porcelain | grep .; then
-            git add .
-            git commit -m "CI: 自动格式化代码"
-            git push
-          else
-            echo "没有需要格式化的文件"
-          fi
-
-      # 运行静态分析
-      - name: 运行静态分析
-        run: flutter analyze
-
-      # 运行测试
       - name: 运行测试
         run: flutter test
-
-      # 构建 Android Release APK
-      - name: 构建 Release APK
-        run: flutter build apk --release
-
-      # 上传构建产物
-      - name: 上传 APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
-
-      # 创建或覆盖 GitHub Release
-      - name: 创建或覆盖 Release
-        if: github.event_name == 'workflow_dispatch' && inputs.force_release == 'true'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: latest-release
-          name: 最新发布
-          draft: false
-          prerelease: false
-          files: build/app/outputs/flutter-apk/app-release.apk
-          fail_on_unmatched_files: true
-          overwrite: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
