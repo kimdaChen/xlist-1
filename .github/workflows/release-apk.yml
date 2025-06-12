@@ -1,1 +1,62 @@
-1
+name: Build and Release APK
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'     # 仅推送形如 v1.2.3 的标签时自动触发
+  workflow_dispatch:  # 支持手动触发（可自定义 tag 名）
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'  # 改为你实际 Flutter 版本
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release.apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      # 获取 tag 名（自动或手动），若手动触发无 tag 则用 pubspec.yaml 版本
+      - name: Get version/tag
+        id: get_tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="v$(grep '^version:' pubspec.yaml | head -1 | awk '{print $2}' | cut -d'+' -f1)"
+          else
+            TAG="${GITHUB_REF##*/}"
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      # 创建或更新 Release（强制覆盖同名 Release）
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_tag.outputs.tag }}
+          name: ${{ steps.get_tag.outputs.tag }}
+          files: build/app/outputs/flutter-apk/app-release.apk
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
