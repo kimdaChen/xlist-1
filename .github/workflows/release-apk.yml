@@ -1,8 +1,9 @@
-name: Flutter CI
+name: Flutter CI and Release
 
 on:
   push:
     branches: [main]
+    tags: [v*] # 仅在推送 tag（如 v1.0.0）时触发打包和发布
   pull_request:
     branches: [main]
 
@@ -44,3 +45,56 @@ jobs:
 
       - name: 运行测试
         run: flutter test
+
+      - name: 构建 Android APK
+        if: startsWith(github.ref, 'refs/tags/v') # 仅在 tag 推送时构建
+        run: flutter build apk --release
+
+      - name: 上传 APK 构建产物
+        if: startsWith(github.ref, 'refs/tags/v') # 仅在 tag 推送时上传
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 7
+
+      - name: 删除已有的 GitHub Release（如果存在）
+        if: startsWith(github.ref, 'refs/tags/v') # 仅在 tag 推送时执行
+        run: |
+          TAG_NAME=${{ github.ref_name }}
+          # 获取现有 Release 的 ID
+          RELEASE_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG_NAME" | jq -r '.id // empty')
+          # 如果 Release 存在，则删除
+          if [ ! -z "$RELEASE_ID" ]; then
+            curl -X DELETE -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID"
+            echo "Deleted existing release with ID: $RELEASE_ID"
+          else
+            echo "No existing release found for tag: $TAG_NAME"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 创建新的 GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v') # 仅在 tag 推送时创建
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+
+      - name: 上传 APK 到 GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v') # 仅在 tag 推送时上传
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: build/app/outputs/flutter-apk/app-release.apk
+          asset_name: app-release.apk
+          asset_content_type: application/vnd.android.package-archive
