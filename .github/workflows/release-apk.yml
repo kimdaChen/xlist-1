@@ -59,13 +59,19 @@ jobs:
           export PATH="$PATH:/opt/flutter/bin"
           flutter pub deps
           cat pubspec.yaml
+          if [ -f "packages/fijkplayer/pubspec.yaml" ]; then
+            cat packages/fijkplayer/pubspec.yaml
+          fi
           ls -la packages/fijkplayer/
           flutter test -h
+          if [ -f "test/widget_test.dart" ]; then
+            cat test/widget_test.dart
+          fi
 
       - name: 运行测试
         run: |
           export PATH="$PATH:/opt/flutter/bin"
-          flutter test # 移除 --platform=linux，使用默认 Dart VM
+          flutter test # 默认 Dart VM 模式
 
       - name: 从 pubspec.yaml 提取版本号
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
