@@ -45,7 +45,7 @@ class Global {
     // Init Getx Service
     await Get.put(BrowserService());
     await Get.putAsync(() => DioService().init());
-    // await Get.putAsync(() => DatabaseService().init()); // 暂时注释
+    await Get.putAsync(() => DatabaseService().init()); // 取消注释
     // await Get.putAsync(() => DownloadService().init()); // 暂时注释
     // await Get.putAsync(() => DeviceInfoService().init()); // 暂时注释
     // await Get.putAsync(() => PlayerNotificationService().init()); // 暂时注释
