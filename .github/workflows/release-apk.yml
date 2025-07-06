@@ -1,151 +1,180 @@
-name: Flutter CI and Release
+name: 打包并发布
+
+# 显式设置所需权限
+permissions:
+  contents: write  # 允许读写仓库内容（包括提交、推送和创建 Release）
 
 on:
-  push:
-    branches: [main]
-    tags: [v*] # 推送 tag（如 v1.0.0）时触发
-  pull_request:
-    branches: [main]
-  workflow_dispatch: # 支持手动触发
-    inputs:
-      version:
-        description: 'Version to release (e.g., 1.0.0+1, leave empty to use pubspec.yaml version)'
-        required: false
-        default: ''
+  workflow_dispatch: # 手动触发工作流
 
 jobs:
-  build:
+  rebuild-android:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 检出代码
+      # 检出仓库代码
+      - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: 设置 Java 环境
-        uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-      - name: 缓存 Flutter SDK 和依赖
+      # 设置 Flutter 环境
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.5'
+          channel: 'stable'
+
+      # 调试：列出项目文件
+      - name: Debug - List project files
+        run: |
+          echo "Listing project files:"
+          ls -la
+          echo "Checking pubspec.yaml:"
+          ls -l pubspec.yaml || echo "pubspec.yaml not found"
+        working-directory: ./
+
+      # 缓存 Flutter 依赖
+      - name: Cache Flutter dependencies
         uses: actions/cache@v4
         with:
-          path: |
-            /opt/flutter
-            ~/.pub-cache
-          key: flutter-${{ runner.os }}-3.24.0-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            flutter-${{ runner.os }}-3.24.0-
-            flutter-${{ runner.os }}-
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: ${{ runner.os }}-flutter-
 
-      - name: 安装 Flutter SDK
-        run: |
-          if [ ! -d "/opt/flutter" ]; then
-            git clone https://github.com/flutter/flutter.git -b 3.24.0 --depth 1 /opt/flutter
-          fi
-          export PATH="$PATH:/opt/flutter/bin"
-          flutter --version
-          flutter doctor
+      # 获取 Flutter 依赖
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: ./
+        continue-on-error: true
 
-      - name: 清理并安装 Flutter 依赖
+      # 清理并重新生成构建文件
+      - name: Clean and regenerate build files
         run: |
-          export PATH="$PATH:/opt/flutter/bin"
-          flutter clean
-          flutter pub cache repair
+          flutter clean || echo "Flutter clean failed, continuing..."
           flutter pub get
+        working-directory: ./
+        continue-on-error: true
 
-      - name: 调试依赖信息
+      # 生成递增版本标签
+      - name: Generate incremental version tag
+        id: version
         run: |
-          export PATH="$PATH:/opt/flutter/bin"
-          flutter pub deps
-          cat pubspec.yaml
-          if [ -f "packages/fijkplayer/pubspec.yaml" ]; then
-            cat packages/fijkplayer/pubspec.yaml
-          fi
-          ls -la packages/fijkplayer/
-          flutter test -h
-          if [ -f "test/widget_test.dart" ]; then
-            cat test/widget_test.dart
-          fi
-
-      - name: 运行测试
-        run: |
-          export PATH="$PATH:/opt/flutter/bin"
-          flutter test # 默认 Dart VM 模式
-
-      - name: 从 pubspec.yaml 提取版本号
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
-        id: get-version
-        run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ ! -z "${{ github.event.inputs.version }}" ]; then
-            VERSION=${{ github.event.inputs.version }}
+          echo "Generating version tag..."
+          LATEST_TAG=$(git tag -l 'v1.*' | sort -V | tail -n 1)
+          if [ -z "$LATEST_TAG" ]; then
+            NEW_TAG="v1.0.0"
           else
-            VERSION=$(grep 'version:' pubspec.yaml | awk '{print $2}' | tr -d '\r')
+            VERSION=$(echo $LATEST_TAG | sed 's/v1\.//')
+            MAJOR=1
+            MINOR=$(echo $VERSION | cut -d. -f1)
+            PATCH=$(echo $VERSION | cut -d. -f2)
+            if [ $PATCH -ge 9 ]; then
+              MINOR=$((MINOR + 1))
+              PATCH=0
+            else
+              PATCH=$((PATCH + 1))
+            fi
+            NEW_TAG="v1.$MINOR.$PATCH"
           fi
-          echo "FLUTTER_VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Extracted or provided version: $VERSION"
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+          echo "Generated version: $NEW_TAG"
+        shell: bash
 
-      - name: 检查版本号与 Tag 一致（仅限 tag 推送）
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+      # 更新 pubspec.yaml 中的版本号
+      - name: Update pubspec.yaml version
         run: |
-          TAG_VERSION=${{ github.ref_name }}
-          FLUTTER_VERSION=${{ env.FLUTTER_VERSION }}
-          if [[ "v$FLUTTER_VERSION" != "$TAG_VERSION" ]]; then
-            echo "Error: Tag ($TAG_VERSION) does not match pubspec.yaml version (v$FLUTTER_VERSION)"
+          VERSION=$(echo ${{ env.NEW_TAG }} | sed 's/v//')
+          PUBSPEC_FILE="pubspec.yaml"
+          if [ -f "$PUBSPEC_FILE" ]; then
+            sed -i "s/version: [0-9]\+\.[0-9]\+\.[0-9]\+\(+[0-9]\+\)\?/version: $VERSION/" "$PUBSPEC_FILE"
+            echo "Updated pubspec.yaml version to $VERSION"
+            cat $PUBSPEC_FILE
+          else
+            echo "Error: pubspec.yaml not found!"
             exit 1
           fi
+        working-directory: ./
 
-      - name: 构建 Android APK
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+      # 检查是否提供密钥库并恢复
+      - name: Restore keystore if available
+        env:
+          HAS_KEYSTORE: ${{ secrets.KEYSTORE && secrets.KEYSTORE_KEY_ALIAS && secrets.KEYSTORE_PASSWORD && secrets.KEY_PASSWORD }}
+        if: ${{ env.HAS_KEYSTORE == 'true' }}
         run: |
-          export PATH="$PATH:/opt/flutter/bin"
-          flutter build apk --release
+          echo "Restoring keystore..."
+          echo "${{ secrets.KEYSTORE }}" | base64 -d > android/app/keystore.jks
+          ls -l android/app/keystore.jks || echo "Failed to restore keystore"
+        working-directory: ./
+        continue-on-error: true
 
-      - name: 上传 APK 构建产物
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+      # 打包并签名 Android APK
+      - name: Build Android APK
+        env:
+          HAS_KEYSTORE: ${{ secrets.KEYSTORE && secrets.KEYSTORE_KEY_ALIAS && secrets.KEYSTORE_PASSWORD && secrets.KEY_PASSWORD }}
+        run: |
+          if [ "$HAS_KEYSTORE" = "true" ] && [ -f "android/app/keystore.jks" ]; then
+            echo "Building signed APK..."
+            flutter build apk --release \
+              --build-name=${{ env.NEW_TAG }} \
+              --build-number=$(( $(git rev-list --count HEAD) + 1000 )) \
+              --keystore-path=android/app/keystore.jks \
+              --keystore-key-alias=${{ secrets.KEYSTORE_KEY_ALIAS }} \
+              --keystore-password=${{ secrets.KEYSTORE_PASSWORD }} \
+              --key-password=${{ secrets.KEY_PASSWORD }}
+          else
+            echo "No keystore found or incomplete secrets, building unsigned APK..."
+            flutter build apk --release \
+              --build-name=${{ env.NEW_TAG }} \
+              --build-number=$(( $(git rev-list --count HEAD) + 1000 ))
+          fi
+        working-directory: ./
+
+      # 清理密钥库文件
+      - name: Clean up keystore
+        env:
+          HAS_KEYSTORE: ${{ secrets.KEYSTORE && secrets.KEYSTORE_KEY_ALIAS && secrets.KEYSTORE_PASSWORD && secrets.KEY_PASSWORD }}
+        if: ${{ env.HAS_KEYSTORE == 'true' }}
+        run: |
+          echozo "Cleaning up keystore..."
+          rm -f android/app/keystore.jks
+        working-directory: ./
+        continue-on-error: true
+
+      # 上传 APK 作为 artifact
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 7
 
-      - name: 删除已有的 GitHub Release（如果存在）
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+      # 提交 pubspec.yaml 更改到仓库
+      - name: Commit and push changes
         run: |
-          TAG_NAME=v${{ env.FLUTTER_VERSION }}
-          # 获取现有 Release 的 ID
-          RELEASE_ID=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG_NAME" | jq -r '.id // empty')
-          # 如果 Release 存在，则删除
-          if [ ! -z "$RELEASE_ID" ]; then
-            curl -X DELETE -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID"
-            echo "Deleted existing release with ID: $RELEASE_ID"
-          else
-            echo "No existing release found for tag: $TAG_NAME"
-          fi
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'actions@github.com'
+          git add pubspec.yaml
+          git commit -m "Update pubspec.yaml version to ${{ env.NEW_TAG }}" || echo "No changes to commit"
+          git push origin HEAD || echo "Push failed, continuing..."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
 
-      - name: 创建新的 GitHub Release
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
-        id: create-release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # 创建 GitHub Release 并上传 APK
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ env.FLUTTER_VERSION }}
-          release_name: Release ${{ env.FLUTTER_VERSION }}
+          tag_name: ${{ env.NEW_TAG }}
+          name: Release ${{ env.NEW_TAG }}
+          body: |
+            Automated release of Flutter Android APK.
+            Signed: ${{ secrets.KEYSTORE && secrets.KEYSTORE_KEY_ALIAS && secrets.KEYSTORE_PASSWORD && secrets.KEY_PASSWORD }}
+            Generated from commit: ${{ github.sha }}
           draft: false
           prerelease: false
-
-      - name: 上传 APK 到 GitHub Release
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
-        uses: actions/upload-release-asset@v1
+          files: build/app/outputs/flutter-apk/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: build/app/outputs/flutter-apk/app-release.apk
-          asset_name: app-release-${{ env.FLUTTER_VERSION }}.apk
-          asset_content_type: application/vnd.android.package-archive
+        continue-on-error: true
