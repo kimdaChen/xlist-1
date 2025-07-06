@@ -9,6 +9,7 @@ import 'package:xlist/themes.dart';
 import 'package:xlist/components/index.dart';
 import 'package:xlist/routes/app_pages.dart';
 import 'package:xlist/pages/splash/index.dart';
+import 'package:xlist/pages/splash/index.dart';
 import 'package:xlist/langs/translation_service.dart';
 
 void main() => Global.init().then((e) => runApp(Phoenix(child: XlistApp())));

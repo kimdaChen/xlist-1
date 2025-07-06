@@ -54,7 +54,7 @@ dependencies:
   font_awesome_flutter: ^10.4.0
   cached_network_image: ^3.2.3
   subtitle_wrapper_package: ^2.1.1
-  syncfusion_flutter_pdfviewer: ^23.1.39
+  syncfusion_flutter_pdfviewer: ^30.1.38
   flutter_svg: ^2.0.5
   flutter_phoenix: ^1.1.0
   flutter_slidable: ^4.0.0
