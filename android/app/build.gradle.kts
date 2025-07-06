@@ -7,6 +7,19 @@ plugins {
 
 android {
     namespace = "com.example.xlist"
+    
+    defaultConfig {
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += [
+                        "room.schemaLocation":"$projectDir/schemas".toString(),
+                        "room.incremental":"true",
+                        "room.expandSecretCreators":"false",
+                ]
+            }
+        }
+    }
+    
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
