@@ -1,6 +1,6 @@
 plugins {
-    id "com.android.application" version "8.3.0"
-    id "org.jetbrains.kotlin.android" version "1.9.0"
+    id "com.android.application"
+    id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
 }
 
@@ -24,7 +24,8 @@ if (flutterVersionName == null) {
 
 android {
     namespace "io.xlist"
-    compileSdkVersion 35
+    compileSdkVersion 33
+    targetSdkVersion 33
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -43,7 +44,6 @@ android {
     defaultConfig {
         applicationId "io.xlist"
         minSdkVersion 21
-        targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }

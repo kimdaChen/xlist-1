@@ -30,7 +30,11 @@ class SplashController extends GetxController {
           CommonUtils.isPad ? LayoutType.GRID : LayoutType.LIST;
     }
 
-    // 跳转到首页
-    Get.offAndToNamed(Routes.HOMEPAGE);
+    try {
+      // 跳转到首页
+      Get.offAndToNamed(Routes.HOMEPAGE);
+    } catch (e) {
+      print(e);
+    }
   }
 }
