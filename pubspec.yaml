@@ -1,4 +1,4 @@
-name: xlist
+name: CloudX
 description: Xlist project.
 publish_to: 'none'
 version: 1.0.0+1
@@ -87,7 +87,7 @@ flutter_native_splash:
     image: assets/common/logo-transparent.png
 
 flutter_app_name:
-  name: "Xlist"
+  name: "CloudX"
 
 flutter_gen:
   output: lib/gen/
