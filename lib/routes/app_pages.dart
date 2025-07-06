@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:xlist/pages/file/index.dart';
 import 'package:xlist/pages/splash/index.dart';
 import 'package:xlist/pages/detail/index.dart';
-import 'package:xlist/pages/test/index.dart'; // 添加 TestPage 导入
 import 'package:xlist/pages/search/index.dart';
 import 'package:xlist/pages/setting/index.dart';
 import 'package:xlist/pages/notfound/index.dart';
@@ -30,11 +29,6 @@ class AppPages {
   static final routes = [
     unknownRoute,
     GetPage(name: _Paths.SPLASH, page: () => SplashPage()),
-    GetPage(
-      name: _Paths.TEST, // 添加 TestPage 路由
-      page: () => TestPage(),
-      binding: TestBinding(),
-    ),
     GetPage(
       name: _Paths.HOMEPAGE,
       page: () => Homepage(),
