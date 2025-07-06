@@ -1,21 +1,18 @@
 import 'package:get/get.dart';
 
-import 'package:xlist/models/user.dart';
-import 'package:xlist/common/index.dart';
+import 'package:xlist/models/index.dart';
+import 'package:xlist/services/index.dart';
 import 'package:xlist/storages/index.dart';
 
-class UserRepository extends Repository {
-  UserRepository();
-
-  // 获取对象列表
+class UserRepository {
+  /// 获取用户信息
   static Future<UserModel> me() async {
-    final url = Get.find<UserStorage>().serverUrl.val;
-    final response = await Repository.get('${url}/api/me');
+    final response = await DioService.to.dio.get('/api/me');
+    final userInfo = UserModel.fromJson(response.data['data']);
 
-    if (response.data['code'] != 200) {
-      throw Exception(response.data['message']);
-    }
+    // 保存用户 ID
+    Get.find<UserStorage>().id.value = userInfo.id.toString();
 
-    return UserModel.fromJson(response.data['data']);
+    return userInfo;
   }
 }

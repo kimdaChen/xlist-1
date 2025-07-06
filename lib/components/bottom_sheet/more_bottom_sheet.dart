@@ -5,7 +5,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:xlist/common/index.dart';
 import 'package:xlist/helper/index.dart';
+import 'package:xlist/helper/permission_helper.dart'; // 导入 PermissionHelper
+import 'package:xlist/helper/download_helper.dart'; // 导入 DownloadHelper
 import 'package:xlist/models/index.dart';
+import 'package:xlist/models/user.dart'; // 导入 UserModel
 import 'package:xlist/constants/index.dart';
 import 'package:xlist/routes/app_pages.dart';
 

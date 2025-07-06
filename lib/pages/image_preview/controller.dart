@@ -15,12 +15,20 @@ import 'package:xlist/services/index.dart';
 import 'package:xlist/storages/index.dart';
 import 'package:xlist/constants/index.dart';
 import 'package:xlist/repositorys/index.dart';
+import 'package:xlist/repositorys/user_repository.dart';
+
+// 添加布局模式枚举
+enum PreviewLayoutMode { carousel, grid, list }
 
 class ImagePreviewController extends GetxController {
   final imageUrls = <String>[].obs;
   final imageHeaders = <String, String>{}.obs;
   final userInfo = UserModel().obs; // 用户信息
-  final serverUrl = Get.find<UserStorage>().serverUrl.val;
+  final serverUrl = Get.find<UserStorage>().serverUrl.value;
+  // 添加布局模式状态
+  final layoutMode = PreviewLayoutMode.carousel.obs;
+  // 网格布局列数
+  final gridCrossAxisCount = 2.obs;
 
   // 获取参数
   final String path = Get.arguments['path'] ?? '';
@@ -47,7 +55,7 @@ class ImagePreviewController extends GetxController {
     // 获取头信息
     final object = await ObjectRepository.get(path: '${path}${name}');
     imageHeaders.value =
-        await DriverHelper.getHeaders(object.provider, object.rawUrl);
+        await DriverHelper.getHeaders(object.provider!, object.rawUrl!);
 
     // 获取图片链接, 115 hack
     if (object.provider!.startsWith(Provider.Cloud115)) {
@@ -86,12 +94,25 @@ class ImagePreviewController extends GetxController {
       actions: [
         SheetAction(label: 'pull_down_copy_link'.tr, key: 'copy'),
         SheetAction(label: 'pull_down_save_image'.tr, key: 'save'),
+        // 添加布局切换选项
+        SheetAction(
+          label: layoutMode.value == PreviewLayoutMode.carousel
+              ? '切换到网格布局'
+              : '切换到轮播布局',
+          key: 'layout',
+        ),
       ],
       cancelLabel: 'cancel'.tr,
     );
     if (value == null) return;
     if (value == 'save') await saveImage();
     if (value == 'copy') copyLink();
+    // 处理布局切换
+    if (value == 'layout') {
+      layoutMode.value = layoutMode.value == PreviewLayoutMode.carousel
+          ? PreviewLayoutMode.grid
+          : PreviewLayoutMode.carousel;
+    }
   }
 
   /// 复制链接

@@ -16,7 +16,7 @@ class ObjectRepository extends Repository {
     String password = '',
     int retry = 0,
   }) async {
-    final url = Get.find<UserStorage>().serverUrl.val;
+    final url = Get.find<UserStorage>().serverUrl.value;
     final response = await Repository.post(
       '${url}/api/fs/get',
       data: {
@@ -27,7 +27,7 @@ class ObjectRepository extends Repository {
 
     // 未登录
     if (response.data['code'] == 401 && retry < 3) {
-      final _serverId = Get.find<UserStorage>().serverId.val;
+      final _serverId = Get.find<UserStorage>().serverId.value;
       final server =
           await DatabaseService.to.database.serverDao.findServerById(_serverId);
       if (server != null) {
@@ -57,7 +57,7 @@ class ObjectRepository extends Repository {
     String password = '',
     bool refresh = false,
   }) async {
-    final url = Get.find<UserStorage>().serverUrl.val;
+    final url = Get.find<UserStorage>().serverUrl.value;
     final response = await Repository.post(
       '${url}/api/fs/list',
       data: {
@@ -79,7 +79,7 @@ class ObjectRepository extends Repository {
     required String path,
     required String name,
   }) async {
-    final url = Get.find<UserStorage>().serverUrl.val;
+    final url = Get.find<UserStorage>().serverUrl.value;
     final response = await Repository.post(
       '${url}/api/fs/rename',
       data: {'path': path, 'name': name},
@@ -97,7 +97,7 @@ class ObjectRepository extends Repository {
     required String dstDir,
     required String name,
   }) async {
-    final url = Get.find<UserStorage>().serverUrl.val;
+    final url = Get.find<UserStorage>().serverUrl.value;
     final response = await Repository.post(
       '${url}/api/fs/move',
       data: {
@@ -119,7 +119,7 @@ class ObjectRepository extends Repository {
     required String dstDir,
     required String name,
   }) async {
-    final url = Get.find<UserStorage>().serverUrl.val;
+    final url = Get.find<UserStorage>().serverUrl.value;
     final response = await Repository.post(
       '${url}/api/fs/copy',
       data: {
@@ -139,7 +139,7 @@ class ObjectRepository extends Repository {
     required String path,
     required String name,
   }) async {
-    final url = Get.find<UserStorage>().serverUrl.val;
+    final url = Get.find<UserStorage>().serverUrl.value;
     final response = await Repository.post(
       '${url}/api/fs/remove',
       data: {
@@ -156,7 +156,7 @@ class ObjectRepository extends Repository {
   static Future<dynamic> mkdir({
     required String path,
   }) async {
-    final url = Get.find<UserStorage>().serverUrl.val;
+    final url = Get.find<UserStorage>().serverUrl.value;
     final response = await Repository.post(
       '${url}/api/fs/mkdir',
       data: {'path': path},
@@ -172,7 +172,7 @@ class ObjectRepository extends Repository {
     required String remotePath,
     String password = '',
   }) async {
-    final url = Get.find<UserStorage>().serverUrl.val;
+    final url = Get.find<UserStorage>().serverUrl.value;
     final response = await DioService.to.dio.put(
       '${url}/api/fs/put',
       options: Options(
@@ -195,7 +195,7 @@ class ObjectRepository extends Repository {
     String password = '',
     bool force_root = false,
   }) async {
-    final url = Get.find<UserStorage>().serverUrl.val;
+    final url = Get.find<UserStorage>().serverUrl.value;
     final response = await Repository.post(
       '${url}/api/fs/dirs',
       data: {
@@ -216,7 +216,7 @@ class ObjectRepository extends Repository {
     required String parent,
     required String password,
   }) async {
-    final url = Get.find<UserStorage>().serverUrl.val;
+    final url = Get.find<UserStorage>().serverUrl.value;
     final response = await Repository.post(
       '${url}/api/fs/search',
       data: {

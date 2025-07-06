@@ -30,7 +30,7 @@ class DownloadHelper {
     }
 
     // 当前服务器 id
-    final serverId = Get.find<UserStorage>().serverId.val;
+    final serverId = Get.find<UserStorage>().serverId.value;
 
     // 检查是否已经在下载列表中
     final download = await DatabaseService.to.database.downloadDao
@@ -105,7 +105,7 @@ class DownloadHelper {
   static Future<ObjectModel> getDownloadUrl(String path, String name) async {
     // 目录密码
     String password = '';
-    final serverId = Get.find<UserStorage>().serverId.val;
+    final serverId = Get.find<UserStorage>().serverId.value;
 
     // 获取目录密码
     final passwordManager = await DatabaseService.to.database.passwordManagerDao

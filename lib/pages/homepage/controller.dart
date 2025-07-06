@@ -11,13 +11,14 @@ import 'package:xlist/models/index.dart';
 import 'package:xlist/services/index.dart';
 import 'package:xlist/storages/index.dart';
 import 'package:xlist/repositorys/index.dart';
+import 'package:xlist/repositorys/user_repository.dart';
 import 'package:xlist/database/entity/index.dart';
 
 class HomepageController extends GetxController {
   final userInfo = UserModel().obs; // 用户信息
   final objects = <ObjectModel>[].obs; // Object 数据
   final isFirstLoading = true.obs; // 是否是第一次加载
-  final serverId = Get.find<UserStorage>().serverId.val.obs;
+  final serverId = Get.find<UserStorage>().serverId.value.obs;
   final sortType = Get.find<PreferencesStorage>().sortType.val.obs; // 排序方式
   final layoutType = Get.find<PreferencesStorage>().layoutType.val.obs; // 布局方式
 
@@ -123,7 +124,7 @@ class HomepageController extends GetxController {
     } catch (e) {}
 
     // 如果可以获取到用户信息, 不需要重新获取 token
-    final userId = Get.find<UserStorage>().id.val;
+    final userId = Get.find<UserStorage>().id.value;
     if (userInfo.value.id != null &&
         userInfo.value.id.toString() == userId &&
         !force) {
@@ -172,12 +173,12 @@ class HomepageController extends GetxController {
     } catch (e) {}
 
     // 更新 token
-    Get.find<UserStorage>().token.val = token;
+    Get.find<UserStorage>().token.value = token;
 
     // 获取用户信息
     try {
       _userInfo = await UserRepository.me();
-      Get.find<UserStorage>().id.val = userInfo.value.id.toString();
+      Get.find<UserStorage>().id.value = userInfo.value.id.toString();
     } catch (e) {
       SmartDialog.showToast(e.toString());
     }

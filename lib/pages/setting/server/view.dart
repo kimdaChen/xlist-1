@@ -38,8 +38,8 @@ class ServerPage extends GetView<ServerController> {
 
           // 重置首页信息
           if (controller.serverList.isEmpty) {
-            Get.find<UserStorage>().serverId.val = result.id!;
-            Get.find<UserStorage>().serverUrl.val = result.url;
+            Get.find<UserStorage>().serverId.value = result.id!;
+            Get.find<UserStorage>().serverUrl.value = result.url;
 
             // 重置首页信息
             final _homepageController = Get.find<HomepageController>();

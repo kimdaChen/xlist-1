@@ -19,7 +19,6 @@ import 'package:xlist/pages/setting/preview/index.dart';
 import 'package:xlist/pages/setting/favorite/index.dart';
 import 'package:xlist/pages/setting/download/index.dart';
 
-import 'package:xlist/routes/middlewares/auth_middleware.dart';
 part 'app_routes.dart';
 
 class AppPages {
@@ -40,31 +39,26 @@ class AppPages {
       name: _Paths.DETAIL,
       page: () => DetailPage(),
       binding: DetailBinding(),
-      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.SEARCH,
       page: () => SearchPage(),
       binding: SearchBinding(),
-      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.DIRECTORY,
       page: () => DirectoryPage(),
       binding: DirectoryBinding(),
-      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.DOCUMENT,
       page: () => DocumentPage(),
       binding: DocumentBinding(),
-      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.FILE,
       page: () => FilePage(),
       binding: FileBinding(),
-      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.IMAGE_PREVIEW,
@@ -73,13 +67,11 @@ class AppPages {
       opaque: false,
       showCupertinoParallax: false,
       transition: Transition.fadeIn,
-      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.VIDEO_PLAYER,
       page: () => VideoPlayerPage(),
       binding: VideoPlayerBinding(),
-      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.AUDIO_PLAYER,
@@ -87,7 +79,6 @@ class AppPages {
       binding: AudioPlayerBinding(),
       showCupertinoParallax: false,
       transition: Transition.downToUp,
-      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: _Paths.SETTING,
@@ -95,47 +86,47 @@ class AppPages {
       binding: SettingBinding(),
       children: [
         GetPage(
-          name: _Paths.SERVER,
+          name: 'server',
           page: () => ServerPage(),
           binding: ServerBinding(),
         ),
         GetPage(
-          name: _Paths.DOWNLOAD,
+          name: 'download',
           page: () => DownloadPage(),
           binding: DownloadBinding(),
         ),
         GetPage(
-          name: _Paths.ABOUT,
+          name: 'about',
           page: () => AboutPage(),
           binding: AboutBinding(),
         ),
         GetPage(
-          name: _Paths.RECENT,
+          name: 'recent',
           page: () => RecentPage(),
           binding: RecentBinding(),
         ),
         GetPage(
-          name: _Paths.FAVORITE,
+          name: 'favorite',
           page: () => FavoritePage(),
           binding: FavoriteBinding(),
         ),
         GetPage(
-          name: _Paths.PREVIEW_IMAGE,
+          name: 'preview/image',
           page: () => SettingImagePage(),
           binding: SettingImageBinding(),
         ),
         GetPage(
-          name: _Paths.PREVIEW_AUDIO,
+          name: 'preview/audio',
           page: () => SettingAudioPage(),
           binding: SettingAudioBinding(),
         ),
         GetPage(
-          name: _Paths.PREVIEW_VIDEO,
+          name: 'preview/video',
           page: () => SettingVideoPage(),
           binding: SettingVideoBinding(),
         ),
         GetPage(
-          name: _Paths.PREVIEW_DOCUMENT,
+          name: 'preview/document',
           page: () => SettingDocumentPage(),
           binding: SettingDocumentBinding(),
         ),

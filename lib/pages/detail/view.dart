@@ -11,6 +11,7 @@ import 'package:xlist/helper/index.dart';
 import 'package:xlist/constants/index.dart';
 import 'package:xlist/components/index.dart';
 import 'package:xlist/pages/detail/index.dart';
+import 'package:xlist/storages/preferences_storage.dart';
 
 class DetailPage extends StatelessWidget {
   final String? tag;
@@ -34,11 +35,34 @@ class DetailPage extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
       ),
       trailing: Obx(
-        () => ButtonHelper.createPullDownButton(
-          controller: controller,
-          path: '${controller.path}${controller.name}',
-          source: PageSource.DETAIL,
-          pageTag: tag ?? '',
+        () => Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              child: Icon(
+                controller.layoutType.value == LayoutType.GRID
+                    ? CupertinoIcons.list_bullet
+                    : CupertinoIcons.square_grid_2x2,
+                size: CommonUtils.navIconSize,
+              ),
+              onPressed: () {
+                controller.layoutType.value =
+                    controller.layoutType.value == LayoutType.GRID
+                        ? LayoutType.LIST
+                        : LayoutType.GRID;
+                Get.find<PreferencesStorage>().layoutType.val =
+                    controller.layoutType.value;
+              },
+            ),
+            SizedBox(width: 10.w),
+            ButtonHelper.createPullDownButton(
+              controller: controller,
+              path: '${controller.path}${controller.name}',
+              source: PageSource.DETAIL,
+              pageTag: tag ?? '',
+            ),
+          ],
         ),
       ),
     );

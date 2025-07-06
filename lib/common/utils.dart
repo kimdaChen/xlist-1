@@ -9,8 +9,10 @@ import 'package:vivysub_utils/vivysub_utils.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:subtitle_wrapper_package/data/models/subtitle.dart';
+import 'package:get_storage/get_storage.dart'; // 导入 GetStorage 以使用 val 扩展方法
 
 import 'package:xlist/models/index.dart';
+import 'package:xlist/models/user.dart'; // 导入 UserModel
 import 'package:xlist/services/index.dart';
 import 'package:xlist/storages/index.dart';
 import 'package:xlist/constants/index.dart';
@@ -36,6 +38,18 @@ class CommonUtils {
   /// [name] 文件名
   static String formatFileNme(String name) {
     return p.basenameWithoutExtension(name);
+  }
+
+  /// 格式化时长
+  /// [duration] 时长
+  static String formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    if (duration.inHours > 0) {
+      return '${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds';
+    }
+    return '$twoDigitMinutes:$twoDigitSeconds';
   }
 
   /// 获取随机数
@@ -91,7 +105,7 @@ class CommonUtils {
   }) {
     String encodePath = '';
     final basePath = userInfo.basePath;
-    final serverUrl = Get.find<UserStorage>().serverUrl.val;
+    final serverUrl = Get.find<UserStorage>().serverUrl.value;
 
     // encode path
     '${basePath}${path}${object.name}'.split('/').forEach((v) {
@@ -223,7 +237,7 @@ class CommonUtils {
     String path,
     String name,
   ) async {
-    final serverId = Get.find<UserStorage>().serverId.val;
+    final serverId = Get.find<UserStorage>().serverId.value;
 
     // 查询是否存在
     final recent = await DatabaseService.to.database.recentDao
@@ -266,7 +280,7 @@ class CommonUtils {
     String path,
     String name,
   ) async {
-    final serverId = Get.find<UserStorage>().serverId.val;
+    final serverId = Get.find<UserStorage>().serverId.value;
 
     // 查询是否存在
     final favorite = await DatabaseService.to.database.favoriteDao

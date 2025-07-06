@@ -9,6 +9,7 @@ import 'package:xlist/gen/index.dart';
 import 'package:xlist/common/index.dart';
 import 'package:xlist/helper/index.dart';
 import 'package:xlist/models/index.dart';
+import 'package:xlist/models/user.dart'; // 导入 UserModel
 import 'package:xlist/components/index.dart';
 import 'package:xlist/components/object_grid/object_grid_item.dart';
 

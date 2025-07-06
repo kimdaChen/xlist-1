@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:path/path.dart' as p;
+import 'dart:ui'; // 导入 dart:ui 以解决 hashValues 错误
 
 import 'package:xlist/common/index.dart';
 import 'package:xlist/models/index.dart';
@@ -15,38 +17,35 @@ import 'package:xlist/database/entity/index.dart';
 class FavoriteController extends GetxController {
   static const pageSize = 20;
   final isEmpty = true.obs; // 是否为空
-  final serverId = Get.find<UserStorage>().serverId.val;
-  List<FavoriteEntity> get favoriteList => pagingController.itemList!; // 最近浏览数据
+  final serverId = Get.find<UserStorage>().serverId.value;
 
   ScrollController scrollController = ScrollController();
-  final PagingController<int, FavoriteEntity> pagingController =
-      PagingController(firstPageKey: 0);
+  late final PagingController<int, FavoriteEntity> pagingController;
 
   @override
-  void onInit() async {
-    pagingController.addPageRequestListener((currentPage) {
-      getFavoriteListData(currentPage);
-    });
-
+  void onInit() {
     super.onInit();
+    // 尝试不带参数初始化 PagingController
+    pagingController = PagingController(firstPageKey: 0);
+    pagingController.addPageRequestListener((pageKey) {
+      _fetchPage(pageKey);
+    });
   }
 
-  /// 获取收藏列表
-  /// [currentIndex] 当前游标
-  Future<void> getFavoriteListData(int currentIndex) async {
+  Future<void> _fetchPage(int pageKey) async {
     try {
-      final _favoriteList = await DatabaseService.to.database.favoriteDao
-          .findFavoriteByServerId(serverId, pageSize, currentIndex);
-
-      // 判断是否为空
-      if (currentIndex == 0) isEmpty.value = _favoriteList.isEmpty;
-      final isLastPage = _favoriteList.length < pageSize;
-      isLastPage
-          ? pagingController.appendLastPage(_favoriteList)
-          : pagingController.appendPage(
-              _favoriteList, currentIndex + _favoriteList.length);
-    } catch (e) {
-      SmartDialog.showToast(e.toString());
+      final newItems = await DatabaseService.to.database.favoriteDao
+          .findFavoriteByServerId(serverId, pageSize, pageKey * pageSize);
+      final isLastPage = newItems.length < pageSize;
+      if (isLastPage) {
+        pagingController.appendLastPage(newItems);
+      } else {
+        final nextPageKey = pageKey + 1;
+        pagingController.appendPage(newItems, nextPageKey);
+      }
+      isEmpty.value = pagingController.itemList?.isEmpty ?? true;
+    } catch (error) {
+      pagingController.error = error;
     }
   }
 
@@ -65,10 +64,8 @@ class FavoriteController extends GetxController {
     try {
       await DatabaseService.to.database.favoriteDao
           .deleteFavoriteById(entity.id!);
-      favoriteList.remove(entity);
-      pagingController.notifyListeners();
-
-      isEmpty.value = favoriteList.isEmpty;
+      pagingController.refresh();
+      isEmpty.value = pagingController.itemList?.isEmpty ?? true;
       SmartDialog.showToast('toast_remove_success'.tr);
     } catch (e) {
       SmartDialog.showToast(e.toString());
@@ -92,10 +89,8 @@ class FavoriteController extends GetxController {
           .deleteFavoriteByServerId(_id);
 
       // 清空数据
-      favoriteList.clear();
-      pagingController.notifyListeners();
-
-      isEmpty.value = favoriteList.isEmpty;
+      pagingController.refresh();
+      isEmpty.value = true;
       SmartDialog.showToast('toast_remove_success_all'.tr);
     } catch (e) {
       SmartDialog.showToast(e.toString());
@@ -106,26 +101,28 @@ class FavoriteController extends GetxController {
   ///
   /// [entity] 收藏实体
   Future<List<ObjectModel>> getObjectList(FavoriteEntity entity) async {
-    List<ObjectModel> _objects = [
-      ObjectModel.fromJson({
-        'name': entity.name,
-        'type': entity.type,
-        'is_dir': entity.type == FileType.FOLDER,
-        'size': entity.size,
-      }),
-    ];
-    if (entity.type == FileType.FOLDER) return [];
+    List<ObjectModel> _objects = [];
+    // 确定要列出内容的路径
+    String pathToList;
+    if (entity.type == FileType.FOLDER) {
+      pathToList = entity.path;
+    } else {
+      // 如果是文件，则获取其父目录的路径
+      pathToList = p.dirname(entity.path);
+    }
 
     try {
       SmartDialog.showLoading();
       final _sortType = Get.find<PreferencesStorage>().sortType.val;
-      final response = await ObjectRepository.getList(path: entity.path);
+      final response = await ObjectRepository.getList(path: pathToList);
       if (response['code'] == 200) {
         final data = FsListModel.fromJson(response['data']);
         _objects = CommonUtils.sortObjectList(data.content ?? [], _sortType);
       }
-      SmartDialog.dismiss();
     } catch (e) {
+      // 可以在这里添加错误处理逻辑，例如显示一个错误提示
+      SmartDialog.showToast(e.toString());
+    } finally {
       SmartDialog.dismiss();
     }
 

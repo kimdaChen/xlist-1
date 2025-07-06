@@ -39,7 +39,6 @@ const Map<String, String> en_US = {
   'image': 'Image',
   'video': 'Video',
   'audio': 'Audio',
-  'feedback': 'Feedback',
   'about': 'About',
   'version': 'Version',
   'failed': 'Failed',
@@ -51,7 +50,6 @@ const Map<String, String> en_US = {
   'more': 'More',
   'favorite': 'Favorite',
   'recent': 'Recent',
-  'premium': 'Premium',
   'play_speed': 'Play Speed',
 
   // Toasts
@@ -144,8 +142,6 @@ const Map<String, String> en_US = {
   'setting_hardware': 'Hardware',
   'setting_preview_image': 'Preview',
   'setting_background_playback': 'Background',
-  'setting_review': 'Review Xlist',
-  'setting_review_description': 'Five star',
   'setting_other_app_open': 'Open with other apps',
   'setting_download_empty': 'No download file',
   'setting_download_used': 'Used space',
@@ -164,37 +160,7 @@ const Map<String, String> en_US = {
   'setting_server_title': 'Swipe left to switch and delete the server',
   'setting_upgrade': 'Upgrade',
   'setting_upgraded': 'Upgraded',
-  'setting_premium_buy': 'Buy',
-  'setting_premium_buy_description': 'One-time purchase, permanent use',
-  'setting_premium_restore': 'Restore',
-  'setting_premium_upgrade': 'Upgrade to Xlist Premium',
-  'setting_premium_upgrade_description':
-      'With a one-time purchase, you will permanently receive all of the following premium features',
-  'setting_premium_upgraded': '🎉 Upgraded to Xlist Premium',
-  'setting_premium_upgraded_description':
-      'You have permanent access to all of the following premium features',
-  'setting_premium_favorite':
-      'Bookmark your favorite files or folders, and find what you care about more easily',
-  'setting_premium_recent':
-      'Record your recently viewed files, quickly find the last previewed file',
-  'setting_premium_preview':
-      'Displays a preview of the media file, which allows you to visualize the contents of the file',
-  'setting_premium_advanced': 'Advanced Features',
-  'setting_premium_advanced_description':
-      'Take your experience to the next level with all the advanced features',
-  'setting_premium_forever': 'Permanent update',
-  'setting_premium_forever_description':
-      'Access to all new features in future updated versions',
-  'setting_premium_support': 'Support for Developers',
-  'setting_premium_support_description':
-      'Help developers to better maintain the software and provide you with a better experience',
 
-  'fijkplayer_subtitle': 'Subtitle',
-  'fijkplayer_subtitle_close': 'Close subtitles',
-  'fijkplayer_audio_track': 'Audio',
-  'fijkplayer_next': 'Next',
-  'fijkplayer_buffering': 'Buffering...',
-  'fijkplayer_retry': 'Click to retry',
 
   // Error
   'no_data': 'No data',

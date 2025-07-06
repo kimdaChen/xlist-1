@@ -1,6 +1,8 @@
 import 'package:xlist/models/index.dart';
 import 'package:xlist/constants/index.dart';
 
+import 'package:xlist/models/user.dart';
+
 class PermissionHelper {
   static bool isAdmin(UserModel user) => user.role == UserRole.ADMIN;
   static bool isGeneral(UserModel user) => user.role == UserRole.GENERAL;

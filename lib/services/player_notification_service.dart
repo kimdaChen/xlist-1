@@ -2,8 +2,8 @@ import 'dart:math';
 import 'dart:async';
 
 import 'package:get/get.dart';
-import 'package:fijkplayer/fijkplayer.dart';
 import 'package:audio_service/audio_service.dart';
+import 'package:video_player/video_player.dart' as vp;
 
 import 'package:xlist/constants/index.dart';
 import 'package:xlist/pages/audio_player/index.dart';
@@ -35,20 +35,6 @@ class PlayerNotificationService extends GetxService {
 class PlayerNotificationHandler extends BaseAudioHandler
     with QueueHandler, SeekHandler {
   late StreamController<PlaybackState> streamController;
-
-  // Convert fijkplayer state into audio_service state.
-  static final FIJK_TO_PROCESSING_STATE = {
-    FijkState.idle: AudioProcessingState.idle,
-    FijkState.initialized: AudioProcessingState.idle,
-    FijkState.asyncPreparing: AudioProcessingState.buffering,
-    FijkState.prepared: AudioProcessingState.ready,
-    FijkState.started: AudioProcessingState.ready,
-    FijkState.paused: AudioProcessingState.ready,
-    FijkState.stopped: AudioProcessingState.ready,
-    FijkState.error: AudioProcessingState.error,
-    FijkState.end: AudioProcessingState.completed,
-    FijkState.completed: AudioProcessingState.completed,
-  };
 
   Function? _play;
   Function? _pause;
@@ -88,7 +74,7 @@ class PlayerNotificationHandler extends BaseAudioHandler
 
       // Get the current video/audio player controller.
       dynamic _vp = _isVideo ?? false
-          ? Get.find<VideoPlayerController>()
+          ? Get.find<vp.VideoPlayerController>()
           : Get.find<AudioPlayerController>();
 
       // If the current play mode is shuffle, change the playlist to a random index.
@@ -113,7 +99,7 @@ class PlayerNotificationHandler extends BaseAudioHandler
 
       // Get the current video/audio player controller.
       dynamic _vp = _isVideo ?? false
-          ? Get.find<VideoPlayerController>()
+          ? Get.find<vp.VideoPlayerController>()
           : Get.find<AudioPlayerController>();
 
       // If the current play mode is shuffle, change the playlist to a random index.
@@ -131,16 +117,16 @@ class PlayerNotificationHandler extends BaseAudioHandler
     } catch (e) {}
   }
 
-  /// Initialise our stream controller and start listening to fijkplayer events.
-  /// [player] is the fijkplayer instance.
+  /// Initialise our stream controller and start listening to video_player events.
+  /// [player] is the video_player instance.
   void initializeStreamController(
-      FijkPlayer player, bool isPlaylist, bool isVideo) {
+      vp.VideoPlayerController player, bool isPlaylist, bool isVideo) {
     _isVideo = isVideo;
     _isPlaylist = isPlaylist;
-    void _fijkValueListener() => updatePlaybackState(player);
-    void startStream() => player.addListener(_fijkValueListener);
+    void _videoPlayerListener() => updatePlaybackState(player);
+    void startStream() => player.addListener(_videoPlayerListener);
     void stopStream() {
-      player.removeListener(_fijkValueListener);
+      player.removeListener(_videoPlayerListener);
       streamController.close();
     }
 
@@ -154,15 +140,28 @@ class PlayerNotificationHandler extends BaseAudioHandler
   }
 
   /// Broadcast media item changes.
-  /// [player] is the fijkplayer instance.
-  void updatePlaybackState(FijkPlayer player) {
-    bool _isPlaying() => player.value.state == FijkState.started;
+  /// [player] is the video_player instance.
+  void updatePlaybackState(vp.VideoPlayerController player) {
+    bool _isPlaying() => player.value.isPlaying;
 
     // AudioProcessingState
     AudioProcessingState _processingState() {
-      if (player.isBuffering) return AudioProcessingState.buffering;
-      return FIJK_TO_PROCESSING_STATE[player.value.state] ??
-          AudioProcessingState.idle;
+      if (player.value.hasError) {
+        return AudioProcessingState.error;
+      }
+      if (player.value.isBuffering) {
+        return AudioProcessingState.buffering;
+      }
+      if (player.value.isInitialized) {
+        if (player.value.isPlaying) {
+          return AudioProcessingState.ready;
+        } else if (player.value.isCompleted) {
+          return AudioProcessingState.completed;
+        } else {
+          return AudioProcessingState.ready;
+        }
+      }
+      return AudioProcessingState.idle;
     }
 
     streamController.add(PlaybackState(
@@ -184,9 +183,11 @@ class PlayerNotificationHandler extends BaseAudioHandler
       androidCompactActionIndices: const [0, 1, 3],
       processingState: _processingState(),
       playing: _isPlaying(),
-      updatePosition: player.currentPos,
-      bufferedPosition: player.bufferPos,
-      speed: player.value.speed,
+      updatePosition: player.value.position,
+      bufferedPosition: player.value.buffered.isNotEmpty
+          ? player.value.buffered.last.end
+          : Duration.zero,
+      speed: player.value.playbackSpeed,
     ));
   }
 }

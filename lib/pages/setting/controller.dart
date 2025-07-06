@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:in_app_review/in_app_review.dart';
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -10,7 +9,7 @@ import 'package:xlist/services/database_service.dart';
 
 class SettingController extends GetxController {
   final version = ''.obs; // 版本号
-  final serverId = Get.find<UserStorage>().serverId.val.obs;
+  final serverId = Get.find<UserStorage>().serverId.value.obs;
   final serverInfo =
       ServerEntity(url: '', type: 0, username: '', password: '').obs;
 
@@ -30,8 +29,6 @@ class SettingController extends GetxController {
 
   // 主题
   final themeModeText = ''.obs;
-  final InAppReview inAppReview = InAppReview.instance;
-
   @override
   void onInit() async {
     super.onInit();

@@ -4,7 +4,13 @@ import 'package:path/path.dart' as p;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:fijkplayer/fijkplayer.dart';
+import 'package:get/get.dart';
+import 'package:jiffy/jiffy.dart';
+import 'package:path/path.dart' as p;
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:video_player/video_player.dart' as vp;
 import 'package:audio_wave/audio_wave.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import 'package:pull_down_button/pull_down_button.dart';
@@ -15,7 +21,6 @@ import 'package:xlist/gen/index.dart';
 import 'package:xlist/helper/index.dart';
 import 'package:xlist/common/index.dart';
 import 'package:xlist/pages/video_player/index.dart';
-import 'package:xlist/components/fijkplayer/default_panel.dart';
 
 class VideoPlayerPage extends GetView<VideoPlayerController> {
   const VideoPlayerPage({Key? key}) : super(key: key);
@@ -90,51 +95,39 @@ class VideoPlayerPage extends GetView<VideoPlayerController> {
     );
   }
 
-  /// FijkView
-  /// [imageProvider] 视频封面
-  Widget _buildFijkView({ImageProvider? imageProvider}) {
+  /// VideoPlayer widget
+  Widget _buildVideoPlayerWidget({ImageProvider? imageProvider}) {
     // 音频封面特殊处理一下
     if (imageProvider == null && PreviewHelper.isAudio(controller.name)) {
       imageProvider = Assets.common.logo.image().image;
     }
 
-    return FijkView(
-      player: controller.player,
-      key: controller.fijkViewKey,
-      cover: imageProvider,
-      fit: FijkFit.cover,
-      color: Colors.black,
-      panelBuilder: (FijkPlayer player, FijkData data, BuildContext context,
-          Size viewSize, Rect texturePos) {
-        return Obx(
-          () => FijkDefaultPanel(
-            player: player,
-            buildContext: context,
-            viewSize: viewSize,
-            texturePos: texturePos,
-            subtitles: controller.subtitles.value,
-            subtitleNameList: controller.subtitleNameList.value,
-            audioTracks: controller.audioTracks.value,
-            timedTextTracks: controller.timedTextTracks.value,
-            showPlaylist: controller.showPlaylist.value,
-            showTimedText: controller.showTimedText.value,
-            playerTitle: controller.currentName.value,
-          ),
-        );
-      },
+    return AspectRatio(
+      aspectRatio: controller.player.value.aspectRatio,
+      child: Stack(
+        children: [
+          vp.VideoPlayer(controller.player),
+          // 这里可以添加自定义的控制面板
+          // 例如：VideoPlayerControls(controller: controller.player),
+          if (imageProvider != null)
+            Positioned.fill(
+              child: Image(image: imageProvider, fit: BoxFit.cover),
+            ),
+        ],
+      ),
     );
   }
 
   // 视频播放器
   Widget _buildVideoPlayer() {
-    if (controller.thumbnail.isEmpty) return _buildFijkView();
+    if (controller.thumbnail.isEmpty) return _buildVideoPlayerWidget();
     return CachedNetworkImage(
       imageUrl: controller.thumbnail.value,
       cacheKey: '${controller.path}${controller.name}',
       httpHeaders: controller.httpHeaders,
       imageBuilder: (context, imageProvider) =>
-          _buildFijkView(imageProvider: imageProvider),
-      errorWidget: (context, url, error) => _buildFijkView(),
+          _buildVideoPlayerWidget(imageProvider: imageProvider),
+      errorWidget: (context, url, error) => _buildVideoPlayerWidget(),
     );
   }
 

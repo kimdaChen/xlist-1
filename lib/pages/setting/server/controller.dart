@@ -13,7 +13,7 @@ import 'package:xlist/services/database_service.dart';
 class ServerController extends GetxController {
   final serverList = <ServerEntity>[].obs;
   final isFirstLoading = true.obs; // 是否是第一次加载
-  final serverId = Get.find<UserStorage>().serverId.val.obs;
+  final serverId = Get.find<UserStorage>().serverId.value.obs;
   final _homepageController = Get.find<HomepageController>();
   final _settingController = Get.find<SettingController>();
 
@@ -50,15 +50,15 @@ class ServerController extends GetxController {
     final userStorage = Get.find<UserStorage>();
 
     // 获取当前服务器信息
-    final token = userStorage.token.val;
-    final serverId = userStorage.serverId.val;
-    final serverUrl = userStorage.serverUrl.val;
+    final token = userStorage.token.value;
+    final serverId = userStorage.serverId.value;
+    final serverUrl = userStorage.serverUrl.value;
 
     try {
       SmartDialog.showLoading();
-      userStorage.token.val = '';
-      userStorage.serverId.val = server.id!;
-      userStorage.serverUrl.val = server.url;
+      userStorage.token.value = '';
+      userStorage.serverId.value = server.id!;
+      userStorage.serverUrl.value = server.url;
 
       // 重置首页信息
       _homepageController.serverId.value = server.id!;
@@ -78,9 +78,9 @@ class ServerController extends GetxController {
       SmartDialog.dismiss();
       SmartDialog.showToast('toast_switch_success'.tr);
     } catch (e) {
-      userStorage.token.val = token;
-      userStorage.serverId.val = serverId;
-      userStorage.serverUrl.val = serverUrl;
+      userStorage.token.value = token;
+      userStorage.serverId.value = serverId;
+      userStorage.serverUrl.value = serverUrl;
       _homepageController.serverId.value = serverId;
       SmartDialog.dismiss();
       SmartDialog.showToast(e.toString());
@@ -107,10 +107,10 @@ class ServerController extends GetxController {
 
     // 删除本地数据
     if (serverId.value == id) {
-      Get.find<UserStorage>().id.val = '';
-      Get.find<UserStorage>().token.val = '';
-      Get.find<UserStorage>().serverId.val = 0;
-      Get.find<UserStorage>().serverUrl.val = '';
+      Get.find<UserStorage>().id.value = '';
+      Get.find<UserStorage>().token.value = '';
+      Get.find<UserStorage>().serverId.value = 0;
+      Get.find<UserStorage>().serverUrl.value = '';
       serverId.value = 0;
     }
 

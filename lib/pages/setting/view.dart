@@ -233,22 +233,6 @@ class SettingPage extends GetView<SettingController> {
                 additionalDividerMargin: 30,
                 children: [
                   _buildListTile(
-                    title: 'feedback'.tr,
-                    icon: Icons.feedback_rounded,
-                    onTap: () => launchUrl(
-                      Uri.parse(
-                          'mailto:hello@gaozihang.com?subject=${'app_name'.tr}, v${controller.version.value}}'),
-                    ),
-                  ),
-                  _buildListTile(
-                    title: 'setting_review'.tr,
-                    icon: Icons.stars_rounded,
-                    additionalInfo: 'setting_review_description'.tr,
-                    onTap: () => controller.inAppReview.openStoreListing(
-                      appStoreId: '6448833200',
-                    ),
-                  ),
-                  _buildListTile(
                     title: 'about'.tr,
                     icon: Icons.info_rounded,
                     onTap: () => Get.toNamed(Routes.SETTING_ABOUT),

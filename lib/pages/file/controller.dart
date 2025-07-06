@@ -8,11 +8,12 @@ import 'package:xlist/models/index.dart';
 import 'package:xlist/services/index.dart';
 import 'package:xlist/storages/index.dart';
 import 'package:xlist/repositorys/index.dart';
+import 'package:xlist/repositorys/user_repository.dart';
 
 class FileController extends GetxController {
   final object = ObjectModel().obs;
   final userInfo = UserModel().obs; // 用户信息
-  final serverId = Get.find<UserStorage>().serverId.val;
+  final serverId = Get.find<UserStorage>().serverId.value;
   final isLoading = true.obs; // 是否正在加载
 
   // 获取参数

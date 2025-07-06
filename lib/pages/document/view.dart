@@ -27,6 +27,14 @@ class DocumentPage extends GetView<DocumentController> {
       onTap: () => controller.favorite(),
     ));
 
+    // 添加布局切换选项
+    items.add(PullDownMenuItem(
+      title: controller.layoutMode.value == DocumentLayoutMode.defaultView
+          ? '切换到全屏模式'.tr
+          : '切换到默认模式'.tr,
+      onTap: () => controller.toggleLayoutMode(),
+    ));
+
     return CupertinoNavigationBar(
       backgroundColor: Get.theme.scaffoldBackgroundColor,
       border: Border.all(width: 0, color: Colors.transparent),
@@ -120,11 +128,17 @@ class DocumentPage extends GetView<DocumentController> {
       return Center(child: CupertinoActivityIndicator());
     }
 
+    // 根据布局模式调整UI
+    final isFullscreen = controller.layoutMode.value == DocumentLayoutMode.fullscreen;
+    final contentPadding = isFullscreen ? EdgeInsets.zero : EdgeInsets.all(16.w);
+    final navigationBarHeight = isFullscreen ? 0 : kMinInteractiveDimensionCupertino + MediaQuery.of(Get.context!).padding.top;
+
     // 代码类型
     if (PreviewHelper.isCode(controller.name) &&
         !PreviewHelper.isHtml(controller.name) &&
         controller.codeController != null) {
       return SingleChildScrollView(
+        padding: contentPadding,
         child: CodeTheme(
           data: CodeThemeData(
             styles: Get.isDarkMode ? atomOneDarkTheme : atomOneLightTheme,
@@ -160,7 +174,7 @@ class DocumentPage extends GetView<DocumentController> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: _buildNavigationBar(),
+      navigationBar: controller.layoutMode.value == DocumentLayoutMode.fullscreen ? null : _buildNavigationBar(),
       child: Obx(() => _buildPageInfo()),
     );
   }

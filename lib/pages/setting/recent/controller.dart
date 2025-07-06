@@ -15,38 +15,34 @@ import 'package:xlist/database/entity/index.dart';
 class RecentController extends GetxController {
   static const pageSize = 20;
   final isEmpty = true.obs; // 是否为空
-  final serverId = Get.find<UserStorage>().serverId.val;
-  List<RecentEntity> get recentList => pagingController.itemList!; // 最近浏览数据
+  final serverId = Get.find<UserStorage>().serverId.value;
 
   ScrollController scrollController = ScrollController();
   final PagingController<int, RecentEntity> pagingController =
       PagingController(firstPageKey: 0);
 
   @override
-  void onInit() async {
-    pagingController.addPageRequestListener((currentPage) {
-      getRecentListData(currentPage);
+  void onInit() {
+    pagingController.addPageRequestListener((pageKey) {
+      _fetchPage(pageKey);
     });
-
     super.onInit();
   }
 
-  /// 获取最近浏览数据
-  /// [currentIndex] 当前游标
-  Future<void> getRecentListData(int currentIndex) async {
+  Future<void> _fetchPage(int pageKey) async {
     try {
-      final _recentList = await DatabaseService.to.database.recentDao
-          .findRecentByServerId(serverId, pageSize, currentIndex);
-
-      // 判断是否为空
-      if (currentIndex == 0) isEmpty.value = _recentList.isEmpty;
-      final isLastPage = _recentList.length < pageSize;
-      isLastPage
-          ? pagingController.appendLastPage(_recentList)
-          : pagingController.appendPage(
-              _recentList, currentIndex + _recentList.length);
-    } catch (e) {
-      SmartDialog.showToast(e.toString());
+      final newItems = await DatabaseService.to.database.recentDao
+          .findRecentByServerId(serverId, pageSize, pageKey * pageSize);
+      final isLastPage = newItems.length < pageSize;
+      if (isLastPage) {
+        pagingController.appendLastPage(newItems);
+      } else {
+        final nextPageKey = pageKey + 1;
+        pagingController.appendPage(newItems, nextPageKey);
+      }
+      isEmpty.value = pagingController.itemList?.isEmpty ?? true;
+    } catch (error) {
+      pagingController.error = error;
     }
   }
 
@@ -64,10 +60,8 @@ class RecentController extends GetxController {
 
     try {
       await DatabaseService.to.database.recentDao.deleteRecentById(entity.id!);
-      recentList.remove(entity);
-      pagingController.notifyListeners();
-
-      isEmpty.value = recentList.isEmpty;
+      pagingController.refresh();
+      isEmpty.value = pagingController.itemList?.isEmpty ?? true;
       SmartDialog.showToast('toast_remove_success'.tr);
     } catch (e) {
       SmartDialog.showToast(e.toString());
@@ -92,10 +86,8 @@ class RecentController extends GetxController {
           .deleteProgressByServerId(_id);
 
       // 清空数据
-      recentList.clear();
-      pagingController.notifyListeners();
-
-      isEmpty.value = recentList.isEmpty;
+      pagingController.refresh();
+      isEmpty.value = true;
       SmartDialog.showToast('toast_remove_success_all'.tr);
     } catch (e) {
       SmartDialog.showToast(e.toString());

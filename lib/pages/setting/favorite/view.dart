@@ -114,9 +114,8 @@ class FavoritePage extends GetView<FavoriteController> {
 
   // SliverList
   Widget _buildSliverList() {
-    return PagedSliverList<int, FavoriteEntity>.separated(
+    return PagedSliverList<int, FavoriteEntity>(
       pagingController: controller.pagingController,
-      separatorBuilder: (context, index) => SizedBox(height: 30.h),
       builderDelegate: PagedChildBuilderDelegate<FavoriteEntity>(
         animateTransitions: false,
         noItemsFoundIndicatorBuilder: (context) => _buildEmptyData(),

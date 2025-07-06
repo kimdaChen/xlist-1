@@ -9,16 +9,18 @@ import 'package:xlist/services/index.dart';
 import 'package:xlist/storages/index.dart';
 import 'package:xlist/constants/index.dart';
 import 'package:xlist/repositorys/index.dart';
+import 'package:xlist/repositorys/user_repository.dart';
 import 'package:xlist/database/entity/index.dart';
 
 class DirectoryController extends GetxController {
   final userInfo = UserModel().obs; // 用户信息
   final objects = <ObjectModel>[].obs; // Object 目录数据
   final isFirstLoading = true.obs; // 是否是第一次加载
-  final serverId = Get.find<UserStorage>().serverId.val;
+  final serverId = Get.find<UserStorage>().serverId.value;
 
   // 显示预览图
-  final isShowPreview = Get.find<PreferencesStorage>().isShowPreview.val.obs;
+  final isShowPreview =
+      (Get.find<PreferencesStorage>().isShowPreview.val ?? true).obs;
 
   // 获取参数
   String path = Get.arguments['path'] ?? '/';

@@ -46,8 +46,20 @@ class PreferencesStorage {
   final sortType = 0.val('sortType', getBox: _prefBox);
 
   // 布局方式 - 列表, 网格
-  final layoutType = 0.val('layoutType', getBox: _prefBox);
+  final layoutType = 1.val('layoutType', getBox: _prefBox);
 
   // 播放模式 - 列表循环, 单集循环, 播完暂停
   final playMode = 0.val('playMode', getBox: _prefBox);
+
+  // 用户ID
+  final id = ''.val('id', getBox: _prefBox);
+
+  // 用户Token
+  final token = ''.val('token', getBox: _prefBox);
+
+  // 服务器ID
+  final serverId = 0.val('serverId', getBox: _prefBox);
+
+  // 服务器URL
+  final serverUrl = ''.val('serverUrl', getBox: _prefBox);
 }

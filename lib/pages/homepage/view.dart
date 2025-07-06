@@ -92,8 +92,8 @@ class Homepage extends GetView<HomepageController> {
               if (!(result is ServerEntity)) return;
 
               // 重置本地信息
-              Get.find<UserStorage>().serverId.val = result.id!;
-              Get.find<UserStorage>().serverUrl.val = result.url;
+              Get.find<UserStorage>().serverId.value = result.id!;
+              Get.find<UserStorage>().serverUrl.value = result.url;
 
               // 重置首页信息
               controller.serverId.value = result.id!;

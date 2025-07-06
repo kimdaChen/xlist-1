@@ -9,9 +9,11 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:xlist/common/index.dart';
 import 'package:xlist/helper/index.dart';
 import 'package:xlist/storages/index.dart';
+import 'package:xlist/storages/user_storage.dart'; // 导入 UserStorage
 import 'package:xlist/services/index.dart';
 import 'package:xlist/constants/index.dart';
 import 'package:xlist/repositorys/index.dart';
+import 'package:xlist/repositorys/user_repository.dart';
 import 'package:xlist/database/entity/index.dart';
 
 class AddServerBottomSheet extends StatefulWidget {
@@ -151,12 +153,12 @@ class _AddServerBottomSheetState extends State<AddServerBottomSheet> {
 
       // 如果是第一个服务器，保存 token
       if (_serverList.isEmpty && !showToast && token != null) {
-        Get.find<UserStorage>().token.val = token;
-        Get.find<UserStorage>().serverUrl.val = url;
+        Get.find<UserStorage>().token.value = token;
+        Get.find<UserStorage>().serverUrl.value = url;
 
         // 获取用户信息
         final userInfo = await UserRepository.me();
-        Get.find<UserStorage>().id.val = userInfo.id.toString();
+        Get.find<UserStorage>().id.value = userInfo.id.toString();
       }
 
       _isUrlValid = token != null;

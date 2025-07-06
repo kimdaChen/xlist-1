@@ -116,7 +116,6 @@ class RecentPage extends GetView<RecentController> {
   Widget _buildSliverList() {
     return PagedSliverList<int, RecentEntity>.separated(
       pagingController: controller.pagingController,
-      separatorBuilder: (context, index) => SizedBox(height: 30.h),
       builderDelegate: PagedChildBuilderDelegate<RecentEntity>(
         animateTransitions: false,
         noItemsFoundIndicatorBuilder: (context) => _buildEmptyData(),
@@ -129,6 +128,7 @@ class RecentPage extends GetView<RecentController> {
           );
         },
       ),
+      separatorBuilder: (context, index) => SizedBox(height: 30.h),
     );
   }
 

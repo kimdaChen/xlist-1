@@ -5,9 +5,13 @@ import 'package:adaptive_dialog/adaptive_dialog.dart';
 
 import 'package:xlist/common/index.dart';
 import 'package:xlist/models/index.dart';
+import 'package:xlist/models/user.dart'; // 导入 UserModel
 import 'package:xlist/services/index.dart';
 import 'package:xlist/storages/index.dart';
+import 'package:xlist/storages/user_storage.dart'; // 导入 UserStorage
+import 'package:xlist/constants/common.dart'; // 导入 LayoutType
 import 'package:xlist/repositorys/index.dart';
+import 'package:xlist/repositorys/user_repository.dart'; // 导入 UserRepository
 import 'package:xlist/pages/homepage/index.dart';
 import 'package:xlist/database/entity/index.dart';
 
@@ -15,9 +19,9 @@ class DetailController extends GetxController {
   final userInfo = UserModel().obs; // 用户信息
   final objects = <ObjectModel>[].obs; // Object 数据
   final isFirstLoading = true.obs; // 是否是第一次加载
-  final serverId = Get.find<UserStorage>().serverId.val;
+  final serverId = Get.find<UserStorage>().serverId.value;
   final sortType = Get.find<PreferencesStorage>().sortType.val.obs; // 排序方式
-  final layoutType = Get.find<PreferencesStorage>().layoutType.val.obs; // 布局方式
+  final layoutType = (Get.find<PreferencesStorage>().layoutType.val ?? LayoutType.GRID).obs; // 布局方式
 
   // 显示预览图
   final isShowPreview = Get.find<PreferencesStorage>().isShowPreview.val.obs;

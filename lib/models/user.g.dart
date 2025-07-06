@@ -7,22 +7,22 @@ part of 'user.dart';
 // **************************************************************************
 
 UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel()
-  ..id = json['id'] as int?
+  ..id = (json['id'] as num?)?.toInt()
   ..username = json['username'] as String?
   ..password = json['password'] as String?
-  ..basePath = json['base_path'] as String?
-  ..role = json['role'] as int?
-  ..permission = json['permission'] as int?
-  ..sso_id = json['sso_id'] as String?
-  ..disabled = json['disabled'] as bool?;
+  ..basePath = json['basePath'] as String?
+  ..role = $enumDecodeNullable(_$UserRoleEnumMap, json['role']);
 
 Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{
       'id': instance.id,
       'username': instance.username,
       'password': instance.password,
-      'base_path': instance.basePath,
-      'role': instance.role,
-      'permission': instance.permission,
-      'sso_id': instance.sso_id,
-      'disabled': instance.disabled,
+      'basePath': instance.basePath,
+      'role': _$UserRoleEnumMap[instance.role],
     };
+
+const _$UserRoleEnumMap = {
+  UserRole.ADMIN: 0,
+  UserRole.GENERAL: 1,
+  UserRole.GUEST: 2,
+};

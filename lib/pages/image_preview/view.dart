@@ -35,36 +35,31 @@ class ImagePreviewPage extends GetView<ImagePreviewController> {
   /// 图片
   /// [url] 图片地址
   Widget _buildNetworkImage(String url) {
-    return SingleChildScrollView(
-      child: CachedNetworkImage(
-        imageUrl: url,
-        fit: BoxFit.fitWidth,
-        httpHeaders: controller.imageHeaders,
-        placeholder: (context, url) => CupertinoActivityIndicator(),
-        errorWidget: (context, url, error) => Column(
-          children: [
-            Icon(
-              CupertinoIcons.wifi_exclamationmark,
-              size: 100.sp,
-              color: Colors.grey,
-            ),
-            SizedBox(height: 10.h),
-            Text(
-              error.toString(),
-              style: Get.textTheme.bodyMedium?.copyWith(color: Colors.grey),
-            ),
-          ],
-        ),
+    return CachedNetworkImage(
+      imageUrl: url,
+      fit: BoxFit.cover,
+      httpHeaders: controller.imageHeaders,
+      placeholder: (context, url) => CupertinoActivityIndicator(),
+      errorWidget: (context, url, error) => Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            CupertinoIcons.wifi_exclamationmark,
+            size: 100.sp,
+            color: Colors.grey,
+          ),
+          SizedBox(height: 10.h),
+          Text(
+            error.toString(),
+            style: Get.textTheme.bodyMedium?.copyWith(color: Colors.grey),
+          ),
+        ],
       ),
     );
   }
 
-  /// 图片预览
-  Widget _buildPhotoViewGallery() {
-    if (controller.imageHeaders.isEmpty) {
-      return Center(child: CupertinoActivityIndicator());
-    }
-
+  /// 轮播布局
+  Widget _buildCarouselLayout() {
     return PhotoViewGallery.builder(
       wantKeepAlive: true,
       pageController: controller.pageController,
@@ -85,6 +80,42 @@ class ImagePreviewPage extends GetView<ImagePreviewController> {
       loadingBuilder: (context, event) =>
           Center(child: CupertinoActivityIndicator()),
     );
+  }
+
+  /// 网格布局
+  Widget _buildGridLayout() {
+    return GridView.builder(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: controller.gridCrossAxisCount.value,
+        crossAxisSpacing: 2.w,
+        mainAxisSpacing: 2.h,
+      ),
+      itemCount: controller.imageUrls.length,
+      itemBuilder: (context, index) {
+        return GestureDetector(
+          onTap: () {
+            controller.currentIndex.value = index;
+            controller.pageController.jumpToPage(index);
+            controller.layoutMode.value = PreviewLayoutMode.carousel;
+          },
+          child: _buildNetworkImage(controller.imageUrls[index]),
+        );
+      },
+    );
+  }
+
+  /// 根据布局模式构建不同布局
+  Widget _buildLayoutByMode() {
+    return Obx(() {
+      switch (controller.layoutMode.value) {
+        case PreviewLayoutMode.carousel:
+          return _buildCarouselLayout();
+        case PreviewLayoutMode.grid:
+          return _buildGridLayout();
+        default:
+          return _buildCarouselLayout();
+      }
+    });
   }
 
   @override
@@ -110,8 +141,11 @@ class ImagePreviewPage extends GetView<ImagePreviewController> {
               child: Obx(
                 () => Stack(
                   children: [
-                    _buildPhotoViewGallery(),
-                    _buildExtendedPageIndicator(),
+                    _buildLayoutByMode(),
+                    // 只在轮播模式显示页码指示器
+                    if (controller.layoutMode.value ==
+                        PreviewLayoutMode.carousel)
+                      _buildExtendedPageIndicator(),
                   ],
                 ),
               ),

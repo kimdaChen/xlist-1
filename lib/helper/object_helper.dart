@@ -9,8 +9,10 @@ import 'package:file_picker/file_picker.dart' hide FileType;
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 import 'package:xlist/models/index.dart';
+import 'package:xlist/models/user.dart'; // 导入 UserModel
 import 'package:xlist/common/index.dart';
 import 'package:xlist/storages/index.dart';
+import 'package:xlist/storages/user_storage.dart'; // 导入 UserStorage
 import 'package:xlist/constants/index.dart';
 import 'package:xlist/routes/app_pages.dart';
 import 'package:xlist/repositorys/index.dart';
@@ -153,7 +155,7 @@ class ObjectHelper {
     required UserModel userInfo,
   }) {
     if (object.isDir == true) {
-      final serverUrl = Get.find<UserStorage>().serverUrl.val;
+      final serverUrl = Get.find<UserStorage>().serverUrl.value;
       Clipboard.setData(
           ClipboardData(text: '${serverUrl}${path}${object.name}'));
     } else {
@@ -360,37 +362,61 @@ class ObjectHelper {
     required String pageTag,
     String password = '',
   }) async {
-    XFile? pickedFile;
+    List<XFile>? pickedFiles;
     final ImagePicker picker = ImagePicker(); // 图片选择器
 
-    if (type == FileType.IMAGE)
-      pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (type == FileType.VIDEO)
-      pickedFile = await picker.pickVideo(source: ImageSource.gallery);
+    if (type == FileType.IMAGE) pickedFiles = await picker.pickMultiImage();
+    if (type == FileType.VIDEO) {
+      // 视频选择器暂时不支持多选，保持单选
+      XFile? pickedFile = await picker.pickVideo(source: ImageSource.gallery);
+      if (pickedFile != null) pickedFiles = [pickedFile];
+    }
 
-    if (pickedFile != null) {
+    if (pickedFiles != null && pickedFiles.isNotEmpty) {
       try {
         SmartDialog.showLoading(msg: 'toast_upload_loading'.tr);
 
-        // 文件名称
-        final fileName = DateTime.now().millisecondsSinceEpoch.toString() +
-            p.extension(pickedFile.name);
+        int successCount = 0;
+        int failCount = 0;
+        List<String> failFiles = [];
 
-        // 上传文件
-        final response = await ObjectRepository.put(
-          fileData: File(pickedFile.path).readAsBytesSync(),
-          fileName: fileName,
-          remotePath: path,
-          password: password,
-        );
+        for (var pickedFile in pickedFiles) {
+          try {
+            // 文件名称
+            final fileName = DateTime.now().millisecondsSinceEpoch.toString() +
+                p.extension(pickedFile.name);
 
-        // 错误处理
-        if (response['code'] != HttpStatus.ok) {
-          throw response['message'];
+            // 上传文件
+            final response = await ObjectRepository.put(
+              fileData: File(pickedFile.path).readAsBytesSync(),
+              fileName: fileName,
+              remotePath: path,
+              password: password,
+            );
+
+            // 错误处理
+            if (response['code'] != HttpStatus.ok) {
+              throw response['message'];
+            }
+            successCount++;
+          } catch (e) {
+            failCount++;
+            failFiles.add(pickedFile.name);
+            print('上传文件 ${pickedFile.name} 失败: $e');
+          }
         }
 
         SmartDialog.dismiss();
-        SmartDialog.showToast('toast_upload_success'.tr);
+        if (failCount > 0) {
+          String failMessage = 'toast_upload_partial_failure'.trParams({
+            'success': successCount.toString(),
+            'total': pickedFiles.length.toString(),
+            'files': failFiles.join(', ')
+          });
+          SmartDialog.showToast(failMessage);
+        } else {
+          SmartDialog.showToast('toast_upload_success'.tr);
+        }
 
         // 刷新列表
         refreshObjectList(source: source, pageTag: pageTag, refresh: true);
@@ -412,26 +438,48 @@ class ObjectHelper {
     required String pageTag,
     String password = '',
   }) async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    FilePickerResult? result =
+        await FilePicker.platform.pickFiles(allowMultiple: true);
     if (result != null) {
       try {
         SmartDialog.showLoading(msg: 'toast_upload_loading'.tr);
+        int successCount = 0;
+        int failCount = 0;
+        List<String> failFiles = [];
 
-        // 上传文件
-        final response = await ObjectRepository.put(
-          fileData: File(result.files.single.path!).readAsBytesSync(),
-          fileName: result.files.single.name,
-          remotePath: path,
-          password: password,
-        );
+        // 上传多个文件
+        for (var file in result.files) {
+          try {
+            final response = await ObjectRepository.put(
+              fileData: File(file.path!).readAsBytesSync(),
+              fileName: file.name,
+              remotePath: path,
+              password: password,
+            );
 
-        // 错误处理
-        if (response['code'] != HttpStatus.ok) {
-          throw response['message'];
+            // 错误处理
+            if (response['code'] != HttpStatus.ok) {
+              throw response['message'];
+            }
+            successCount++;
+          } catch (e) {
+            failCount++;
+            failFiles.add(file.name);
+            print('上传文件 ${file.name} 失败: $e');
+          }
         }
 
         SmartDialog.dismiss();
-        SmartDialog.showToast('toast_upload_success'.tr);
+        if (failCount > 0) {
+          String failMessage = 'toast_upload_partial_failure'.trParams({
+            'success': successCount.toString(),
+            'total': result.files.length.toString(),
+            'files': failFiles.join(', ')
+          });
+          SmartDialog.showToast(failMessage);
+        } else {
+          SmartDialog.showToast('toast_upload_success'.tr);
+        }
 
         // 刷新列表
         refreshObjectList(source: source, pageTag: pageTag, refresh: true);

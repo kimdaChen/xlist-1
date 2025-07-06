@@ -11,7 +11,6 @@ import 'package:xlist/gen/index.dart';
 import 'package:xlist/helper/index.dart';
 import 'package:xlist/common/index.dart';
 import 'package:xlist/constants/index.dart';
-import 'package:xlist/components/index.dart';
 import 'package:xlist/pages/audio_player/index.dart';
 
 class AudioPlayerPage extends GetView<AudioPlayerController> {
@@ -196,38 +195,32 @@ class AudioPlayerPage extends GetView<AudioPlayerController> {
     cacheValue = min(cacheValue, duration);
     cacheValue = max(cacheValue, 0);
 
-    if (controller.duration.value.inMilliseconds == 0) {
-      return NewFijkSlider(
-        colors: NewFijkSliderColors(
-          cursorColor: Get.theme.primaryColor,
-          playedColor: Get.theme.primaryColor,
-        ),
-        onChangeEnd: (double value) {},
-        value: 0,
-        onChanged: (double value) {},
-      );
-    }
-
-    return NewFijkSlider(
-      colors: NewFijkSliderColors(
-        cursorColor: Get.theme.primaryColor,
-        playedColor: Get.theme.primaryColor,
+    return SliderTheme(
+      data: SliderTheme.of(Get.context!).copyWith(
+        activeTrackColor: Get.theme.primaryColor,
+        inactiveTrackColor: Get.theme.primaryColor.withOpacity(0.3),
+        thumbColor: Get.theme.primaryColor,
+        overlayColor: Get.theme.primaryColor.withOpacity(0.2),
+        trackHeight: 2.0,
+        thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6.0),
+        overlayShape: RoundSliderOverlayShape(overlayRadius: 12.0),
       ),
-      value: currentValue,
-      cacheValue: cacheValue,
-      min: 0.0,
-      max: duration,
-      onChanged: (v) {
-        controller.seekPos = v;
-      },
-      onChangeEnd: (v) {
-        if (controller.seekPos.toInt() == -1) return;
-        controller.player.seekTo(v.toInt());
-        controller.currentPos.value = Duration(
-          milliseconds: controller.seekPos.toInt(),
-        );
-        controller.seekPos = -1;
-      },
+      child: Slider(
+        value: currentValue,
+        min: 0.0,
+        max: duration,
+        onChanged: (v) {
+          controller.seekPos = v;
+        },
+        onChangeEnd: (v) {
+          if (controller.seekPos.toInt() == -1) return;
+          controller.player.seekTo(Duration(milliseconds: v.toInt()));
+          controller.currentPos.value = Duration(
+            milliseconds: controller.seekPos.toInt(),
+          );
+          controller.seekPos = -1;
+        },
+      ),
     );
   }
 
@@ -244,7 +237,7 @@ class AudioPlayerPage extends GetView<AudioPlayerController> {
             padding: EdgeInsets.only(left: 50.w),
             child: Obx(
               () => Text(
-                FijkHelper.formatDuration(controller.currentPos.value),
+                CommonUtils.formatDuration(controller.currentPos.value),
               ),
             ),
           ),
@@ -254,7 +247,7 @@ class AudioPlayerPage extends GetView<AudioPlayerController> {
             padding: EdgeInsets.only(right: 50.w),
             child: Obx(
               () => Text(
-                FijkHelper.formatDuration(controller.duration.value),
+                CommonUtils.formatDuration(controller.duration.value),
               ),
             ),
           ),
@@ -306,7 +299,7 @@ class AudioPlayerPage extends GetView<AudioPlayerController> {
             onPressed: () {
               controller.isPlaying.value
                   ? controller.player.pause()
-                  : controller.player.start();
+                  : controller.player.play();
             },
           ),
           CupertinoButton(

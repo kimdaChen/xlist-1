@@ -17,7 +17,7 @@ class DownloadController extends GetxController {
   final tasks = <DownloadTask>[].obs; // 任务列表
   final isFirstLoading = true.obs; // 是否是第一次加载
   final totalSize = 0.obs; // 总大小
-  final serverId = Get.find<UserStorage>().serverId.val.obs;
+  final serverId = Get.find<UserStorage>().serverId.value.obs;
 
   // ScrollController
   final ScrollController scrollController = ScrollController();

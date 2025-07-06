@@ -54,7 +54,7 @@ class DioService extends GetxService {
 class DioInterceptors extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    final token = Get.find<UserStorage>().token.val;
+    final token = Get.find<UserStorage>().token.value;
     options.headers.addAll(
       Map.from(DioService.to.defaultHeaders)
         ..addAll({HttpHeaders.authorizationHeader: token}),

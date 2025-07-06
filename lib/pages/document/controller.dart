@@ -16,14 +16,20 @@ import 'package:xlist/services/index.dart';
 import 'package:xlist/storages/index.dart';
 import 'package:xlist/constants/index.dart';
 import 'package:xlist/repositorys/index.dart';
+import 'package:xlist/repositorys/user_repository.dart';
+
+// 添加布局模式枚举
+enum DocumentLayoutMode { defaultView, fullscreen, readerMode }
 
 class DocumentController extends GetxController {
   final object = ObjectModel().obs;
   final userInfo = UserModel().obs; // 用户信息
   final httpHeaders = Map<String, String>().obs;
-  final serverId = Get.find<UserStorage>().serverId.val;
+  final serverId = Get.find<UserStorage>().serverId.value;
   final isLoading = true.obs; // 是否正在加载
   final progress = 0.0.obs;
+  // 添加布局模式状态
+  final layoutMode = DocumentLayoutMode.defaultView.obs;
 
   // 获取参数
   final String path = Get.arguments['path'] ?? '';
@@ -114,5 +120,12 @@ class DocumentController extends GetxController {
 
     // 取消进度监听
     DownloadService.to.unbindBackgroundIsolate();
+  }
+
+  /// 切换布局模式
+  void toggleLayoutMode() {
+    layoutMode.value = layoutMode.value == DocumentLayoutMode.defaultView
+        ? DocumentLayoutMode.fullscreen
+        : DocumentLayoutMode.defaultView;
   }
 }

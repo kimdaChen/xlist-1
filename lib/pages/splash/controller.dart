@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:get/get.dart';
-import 'package:fijkplayer/fijkplayer.dart';
 
 import 'package:xlist/common/index.dart';
 import 'package:xlist/storages/index.dart';
@@ -23,7 +22,6 @@ class SplashController extends GetxController {
   }
 
   void complete() async {
-    if (!CommonUtils.isPad) await FijkPlugin.setOrientationPortrait();
 
     // 布局方式
     final layoutType = Get.find<PreferencesStorage>().layoutType.val;
