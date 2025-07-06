@@ -60,10 +60,21 @@ flutter {
 }
 
 subprojects {
+    project.configurations.all {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'androidx.core' && details.requested.name == 'core-ktx') {
+                details.useVersion '1.7.0'
+            }
+        }
+    }
     afterEvaluate { project ->
         if (project.name == 'image_gallery_saver') {
             android {
                 namespace 'com.example.image_gallery_saver'
+                compileSdkVersion 35
+                defaultConfig {
+                    minSdkVersion 21
+                }
             }
         }
     }
