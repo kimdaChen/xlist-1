@@ -17,7 +17,7 @@ import 'package:xlist/repositorys/user_repository.dart';
 import 'package:xlist/database/entity/index.dart';
 
 class AddServerBottomSheet extends StatefulWidget {
-  const AddServerBottomSheet({Key? key}) : super(key: key);
+  const AddServerBottomSheet({super.key});
 
   @override
   _AddServerBottomSheetState createState() => _AddServerBottomSheetState();
@@ -54,8 +54,8 @@ class _AddServerBottomSheetState extends State<AddServerBottomSheet> {
 
     // 判断是否是 http 或者 https 开头
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      SmartDialog.showToast('add_server_toast_url_invalid'.tr);
-      return false;
+      url = 'http://$url';
+      _urlController.text = url;
     }
 
     // 获取匿名用户信息
@@ -105,8 +105,8 @@ class _AddServerBottomSheetState extends State<AddServerBottomSheet> {
 
       // 判断是否是 http 或者 https 开头
       if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        SmartDialog.showToast('add_server_toast_url_invalid'.tr);
-        return false;
+        url = 'http://$url';
+        _urlController.text = url;
       }
 
       // 登录测试
@@ -300,3 +300,9 @@ class _AddServerBottomSheetState extends State<AddServerBottomSheet> {
     );
   }
 }
+
+// Before
+// SomeWidget(child: someChild, otherProperty: someValue);
+
+// After
+// SomeWidget(otherProperty: someValue, child: someChild);

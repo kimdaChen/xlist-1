@@ -12,6 +12,7 @@ import 'package:xlist/helper/index.dart';
 import 'package:xlist/common/index.dart';
 import 'package:xlist/constants/index.dart';
 import 'package:xlist/pages/audio_player/index.dart';
+import 'package:xlist/routes/app_pages.dart';
 
 class AudioPlayerPage extends GetView<AudioPlayerController> {
   const AudioPlayerPage({Key? key}) : super(key: key);
@@ -68,7 +69,17 @@ class AudioPlayerPage extends GetView<AudioPlayerController> {
             size: CommonUtils.isPad ? 25 : 70.sp),
         onPressed: () => Get.back(),
       ),
-      trailing: _buildPullDownButton(),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            child: Icon(CupertinoIcons.download_circle),
+            onPressed: () => Get.toNamed(Routes.SETTING_DOWNLOAD),
+          ),
+          _buildPullDownButton(),
+        ],
+      ),
     );
   }
 

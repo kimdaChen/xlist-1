@@ -4,12 +4,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:xlist/common/index.dart';
 import 'package:xlist/storages/index.dart';
 import 'package:xlist/routes/app_pages.dart';
 import 'package:xlist/pages/setting/index.dart';
 import 'package:xlist/pages/homepage/index.dart';
+import 'package:xlist/pages/video_player/controller.dart';
 
 class SettingPage extends GetView<SettingController> {
   const SettingPage({Key? key}) : super(key: key);
@@ -26,6 +28,11 @@ class SettingPage extends GetView<SettingController> {
         onPressed: () => Get.back(),
       ),
       middle: Text('setting'.tr),
+      trailing: CupertinoButton(
+        padding: EdgeInsets.zero,
+        child: Icon(CupertinoIcons.download_circle),
+        onPressed: () => Get.toNamed(Routes.SETTING_DOWNLOAD),
+      ),
     );
   }
 
@@ -69,8 +76,8 @@ class SettingPage extends GetView<SettingController> {
                 style: Get.textTheme.bodyLarge?.copyWith(color: Colors.grey),
               ),
             ),
-      trailing: trailing,
       onTap: onTap,
+      trailing: trailing,
     );
   }
 
@@ -224,6 +231,25 @@ class SettingPage extends GetView<SettingController> {
                         },
                       ),
                     ),
+                  ),
+                ],
+              ),
+              CupertinoListSection.insetGrouped(
+                backgroundColor: CommonUtils.backgroundColor,
+                dividerMargin: 20,
+                additionalDividerMargin: 30,
+                header: Container(
+                  padding: EdgeInsets.only(left: 15),
+                  alignment: Alignment.centerLeft,
+                  child: Text('setting_cache'.tr, style: Get.textTheme.bodySmall),
+                ),
+                children: [
+                  _buildListTile(
+                    title: 'setting_clear_cache'.tr,
+                    icon: Icons.delete_rounded,
+                    onTap: () {
+                      CachedNetworkImage.evictFromCache(Get.find<VideoPlayerController>().thumbnail.value);
+                    },
                   ),
                 ],
               ),

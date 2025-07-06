@@ -13,28 +13,15 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:xlist/common/index.dart';
 import 'package:xlist/helper/index.dart';
 import 'package:xlist/pages/document/index.dart';
+// 原导入方式错误，修改为导入主库文件
+// import 'package:xlist/routes/app_routes.dart';
+import 'package:xlist/routes/app_pages.dart';
 
 class DocumentPage extends GetView<DocumentController> {
   const DocumentPage({Key? key}) : super(key: key);
 
   // NavigationBar
   CupertinoNavigationBar _buildNavigationBar() {
-    List<PullDownMenuEntry> items = [];
-
-    // 收藏
-    items.add(PullDownMenuItem(
-      title: 'favorite'.tr,
-      onTap: () => controller.favorite(),
-    ));
-
-    // 添加布局切换选项
-    items.add(PullDownMenuItem(
-      title: controller.layoutMode.value == DocumentLayoutMode.defaultView
-          ? '切换到全屏模式'.tr
-          : '切换到默认模式'.tr,
-      onTap: () => controller.toggleLayoutMode(),
-    ));
-
     return CupertinoNavigationBar(
       backgroundColor: Get.theme.scaffoldBackgroundColor,
       border: Border.all(width: 0, color: Colors.transparent),
@@ -44,27 +31,15 @@ class DocumentPage extends GetView<DocumentController> {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      trailing: PullDownButton(
-        itemBuilder: (context) => [
-          ...items,
-          PullDownMenuItem(
-            title: 'pull_down_copy_link'.tr,
-            onTap: () => controller.copyLink(),
-          ),
-          PullDownMenuItem(
-            title: 'pull_down_download_file'.tr,
-            onTap: () => controller.download(),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            child: Icon(CupertinoIcons.download_circle),
+            onPressed: () => Get.toNamed(Routes.SETTING_DOWNLOAD),
           ),
         ],
-        buttonBuilder: (context, showMenu) => CupertinoButton(
-          onPressed: showMenu,
-          padding: EdgeInsets.zero,
-          alignment: Alignment.centerRight,
-          child: Icon(
-            CupertinoIcons.ellipsis_circle,
-            size: CommonUtils.navIconSize,
-          ),
-        ),
       ),
     );
   }
@@ -129,9 +104,14 @@ class DocumentPage extends GetView<DocumentController> {
     }
 
     // 根据布局模式调整UI
-    final isFullscreen = controller.layoutMode.value == DocumentLayoutMode.fullscreen;
-    final contentPadding = isFullscreen ? EdgeInsets.zero : EdgeInsets.all(16.w);
-    final navigationBarHeight = isFullscreen ? 0 : kMinInteractiveDimensionCupertino + MediaQuery.of(Get.context!).padding.top;
+    final isFullscreen =
+        controller.layoutMode.value == DocumentLayoutMode.fullscreen;
+    final contentPadding =
+        isFullscreen ? EdgeInsets.zero : EdgeInsets.all(16.w);
+    final navigationBarHeight = isFullscreen
+        ? 0
+        : kMinInteractiveDimensionCupertino +
+            MediaQuery.of(Get.context!).padding.top;
 
     // 代码类型
     if (PreviewHelper.isCode(controller.name) &&
@@ -174,7 +154,10 @@ class DocumentPage extends GetView<DocumentController> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: controller.layoutMode.value == DocumentLayoutMode.fullscreen ? null : _buildNavigationBar(),
+      navigationBar:
+          controller.layoutMode.value == DocumentLayoutMode.fullscreen
+              ? null
+              : _buildNavigationBar(),
       child: Obx(() => _buildPageInfo()),
     );
   }

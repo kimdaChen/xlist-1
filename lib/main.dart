@@ -8,7 +8,6 @@ import 'package:xlist/global.dart';
 import 'package:xlist/themes.dart';
 import 'package:xlist/components/index.dart';
 import 'package:xlist/routes/app_pages.dart';
-import 'package:xlist/pages/splash/index.dart';
 import 'package:xlist/langs/translation_service.dart';
 
 void main() => Global.init().then((e) => runApp(Phoenix(child: XlistApp())));
@@ -25,11 +24,18 @@ class XlistApp extends StatelessWidget {
         theme: Themes.light,
         darkTheme: Themes.dark,
         themeMode: ThemeMode.light,
-        home: SplashPage(),
-        initialBinding: SplashBinding(),
+        initialRoute: AppPages.INITIAL,
         defaultTransition: Transition.cupertino,
         debugShowCheckedModeBanner: false,
-        initialRoute: AppPages.INITIAL,
+        home: GetRouterOutlet.builder(
+          builder: (context, delegate, currentRoute) {
+            final currentLocation = currentRoute?.location;
+            if (currentLocation != null) {
+              print('The route path is $currentLocation');
+            }
+            return const SizedBox();
+          },
+        ),
         getPages: AppPages.routes,
         unknownRoute: AppPages.unknownRoute,
         builder: (BuildContext context, Widget? child) {

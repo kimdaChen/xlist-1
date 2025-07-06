@@ -12,6 +12,7 @@ import 'package:xlist/constants/index.dart';
 import 'package:xlist/components/index.dart';
 import 'package:xlist/pages/detail/index.dart';
 import 'package:xlist/storages/preferences_storage.dart';
+import 'package:xlist/routes/app_pages.dart';
 
 class DetailPage extends StatelessWidget {
   final String? tag;
@@ -38,6 +39,11 @@ class DetailPage extends StatelessWidget {
         () => Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              child: Icon(CupertinoIcons.download_circle),
+              onPressed: () => Get.toNamed(Routes.SETTING_DOWNLOAD),
+            ),
             CupertinoButton(
               padding: EdgeInsets.zero,
               child: Icon(

@@ -100,6 +100,11 @@ class DirectoryPage extends GetView<DirectoryController> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              child: Icon(CupertinoIcons.download_circle),
+              onPressed: () => Get.toNamed(Routes.SETTING_DOWNLOAD),
+            ),
             Obx(() => _buildPullDownButton()),
             SizedBox(width: 15.w),
             CupertinoButton(

@@ -45,13 +45,23 @@ class Homepage extends GetView<HomepageController> {
         'homepage_title'.tr,
         style: TextStyle(color: Get.theme.textTheme.bodyLarge?.color),
       ),
-      trailing: Obx(
-        () => ButtonHelper.createPullDownButton(
-          controller: controller,
-          path: '/',
-          source: PageSource.HOMEPAGE,
-          pageTag: tag ?? '',
-        ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            child: Icon(CupertinoIcons.download_circle),
+            onPressed: () => Get.toNamed(Routes.SETTING_DOWNLOAD),
+          ),
+          Obx(
+            () => ButtonHelper.createPullDownButton(
+              controller: controller,
+              path: '/',
+              source: PageSource.HOMEPAGE,
+              pageTag: tag ?? '',
+            ),
+          ),
+        ],
       ),
     );
   }

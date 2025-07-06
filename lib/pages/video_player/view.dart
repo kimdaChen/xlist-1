@@ -21,6 +21,7 @@ import 'package:xlist/gen/index.dart';
 import 'package:xlist/helper/index.dart';
 import 'package:xlist/common/index.dart';
 import 'package:xlist/pages/video_player/index.dart';
+import 'package:xlist/routes/app_pages.dart';
 
 class VideoPlayerPage extends GetView<VideoPlayerController> {
   const VideoPlayerPage({Key? key}) : super(key: key);
@@ -91,7 +92,17 @@ class VideoPlayerPage extends GetView<VideoPlayerController> {
           overflow: TextOverflow.ellipsis,
         ),
       ),
-      trailing: Obx(() => _buildPullDownButton()),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            child: Icon(CupertinoIcons.download_circle),
+            onPressed: () => Get.toNamed(Routes.SETTING_DOWNLOAD),
+          ),
+          Obx(() => _buildPullDownButton()),
+        ],
+      ),
     );
   }
 
@@ -123,7 +134,6 @@ class VideoPlayerPage extends GetView<VideoPlayerController> {
     if (controller.thumbnail.isEmpty) return _buildVideoPlayerWidget();
     return CachedNetworkImage(
       imageUrl: controller.thumbnail.value,
-      cacheKey: '${controller.path}${controller.name}',
       httpHeaders: controller.httpHeaders,
       imageBuilder: (context, imageProvider) =>
           _buildVideoPlayerWidget(imageProvider: imageProvider),

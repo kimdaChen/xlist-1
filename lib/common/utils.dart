@@ -315,3 +315,9 @@ class CommonUtils {
     SmartDialog.showToast('toast_favorite_success'.tr);
   }
 }
+
+// Before
+// String message = 'Hello, ${name}';
+
+// After
+// String message = 'Hello, $name';
