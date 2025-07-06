@@ -25,7 +25,7 @@ part 'app_routes.dart';
 class AppPages {
   AppPages._();
 
-  static const INITIAL = _Paths.TEST; // 修改初始路由为 TestPage
+  static const INITIAL = _Paths.HOMEPAGE; // 修改初始路由为 TestPage
 
   static final routes = [
     unknownRoute,
