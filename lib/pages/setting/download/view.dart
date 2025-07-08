@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
+// import 'package:flutter_downloader/flutter_downloader.dart';
 
 import 'package:xlist/gen/index.dart';
 import 'package:xlist/common/index.dart';
@@ -36,18 +36,16 @@ class DownloadPage extends GetView<DownloadController> {
 
   /// 列表项
   Widget _buildItem(int index) {
-    final task = controller.tasks[index];
-    final entity = controller.entities.firstWhere(
-      (e) => e.taskId == task.taskId,
-    );
+    // final task = controller.tasks[index];
+    final entity = controller.entities[index];
 
     String path = entity.path;
     if (entity.path.endsWith('/')) {
       path = entity.path.substring(0, entity.path.length - 1);
     }
 
-    String additionalInfo = task.progress == 100 ? '' : '${task.progress}%';
-    if (task.status == DownloadTaskStatus.failed) additionalInfo = 'failed'.tr;
+    String additionalInfo = '';//task.progress == 100 ? '' : '${task.progress}%';
+    // if (task.status == DownloadTaskStatus.failed) additionalInfo = 'failed'.tr;
 
     return CupertinoListSection.insetGrouped(
       backgroundColor: CommonUtils.backgroundColor,
@@ -59,47 +57,47 @@ class DownloadPage extends GetView<DownloadController> {
           height: CommonUtils.isPad ? 80 : 170.h,
           width: double.infinity,
           child: Slidable(
-            startActionPane: task.status == DownloadTaskStatus.complete
-                ? ActionPane(
-                    motion: ScrollMotion(),
-                    children: [
-                      SlidableAction(
-                        onPressed: (context) => Share.shareXFiles(
-                            [XFile('${task.savedDir}/${entity.name}')]),
-                        backgroundColor: CupertinoColors.systemBlue,
-                        foregroundColor: Colors.white,
-                        icon: CupertinoIcons.share,
-                        label: 'setting_other_app_open'.tr,
-                      )
-                    ],
-                  )
-                : null,
+            // startActionPane: task.status == DownloadTaskStatus.complete
+            //     ? ActionPane(
+            //         motion: ScrollMotion(),
+            //         children: [
+            //           SlidableAction(
+            //             onPressed: (context) => Share.shareXFiles(
+            //                 [XFile('${task.savedDir}/${entity.name}')]),
+            //             backgroundColor: CupertinoColors.systemBlue,
+            //             foregroundColor: Colors.white,
+            //             icon: CupertinoIcons.share,
+            //             label: 'setting_other_app_open'.tr,
+            //           )
+            //         ],
+            //       )
+            //     : null,
             endActionPane: ActionPane(
               motion: ScrollMotion(),
               children: [
-                task.status == DownloadTaskStatus.running
-                    ? SlidableAction(
-                        onPressed: (context) =>
-                            FlutterDownloader.pause(taskId: task.taskId),
-                        backgroundColor: Colors.grey,
-                        icon: CupertinoIcons.pause_circle,
-                        foregroundColor: Colors.white,
-                        label: 'paused'.tr,
-                      )
-                    : SizedBox(),
-                task.status == DownloadTaskStatus.paused
-                    ? SlidableAction(
-                        onPressed: (context) =>
-                            controller.resume(entity.id!, task.taskId),
-                        backgroundColor: Get.theme.primaryColor,
-                        icon: CupertinoIcons.play_circle,
-                        foregroundColor: Colors.white,
-                        label: 'resume'.tr,
-                      )
-                    : SizedBox(),
+                // task.status == DownloadTaskStatus.running
+                //     ? SlidableAction(
+                //         onPressed: (context) =>
+                //             FlutterDownloader.pause(taskId: task.taskId),
+                //         backgroundColor: Colors.grey,
+                //         icon: CupertinoIcons.pause_circle,
+                //         foregroundColor: Colors.white,
+                //         label: 'paused'.tr,
+                //       )
+                //     : SizedBox(),
+                // task.status == DownloadTaskStatus.paused
+                //     ? SlidableAction(
+                //         onPressed: (context) =>
+                //             controller.resume(entity.id!, task.taskId),
+                //         backgroundColor: Get.theme.primaryColor,
+                //         icon: CupertinoIcons.play_circle,
+                //         foregroundColor: Colors.white,
+                //         label: 'resume'.tr,
+                //       )
+                //     : SizedBox(),
                 SlidableAction(
                   onPressed: (context) =>
-                      controller.delete(entity.id!, task.taskId),
+                      controller.delete(entity.id!, entity.taskId),
                   backgroundColor: Colors.red,
                   icon: CupertinoIcons.delete,
                   label: 'delete'.tr,
@@ -108,14 +106,14 @@ class DownloadPage extends GetView<DownloadController> {
             ),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => controller.open(task, entity),
+              onTap: () => controller.open(null, entity),
               child: Row(
                 children: [
                   SizedBox(width: 30.w),
                   _buildIcon(entity.type, entity.name),
                   SizedBox(width: 20.w),
                   Container(
-                    width: task.progress == 100 ? 750.w : 650.w,
+                    width: 750.w,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -163,7 +161,7 @@ class DownloadPage extends GetView<DownloadController> {
       );
     }
 
-    if (controller.tasks.isEmpty) {
+    if (controller.entities.isEmpty) {
       return SliverToBoxAdapter(
         child: Column(
           children: [
@@ -182,7 +180,7 @@ class DownloadPage extends GetView<DownloadController> {
           index: index,
           child: Obx(() => _buildItem(index)),
         ),
-        childCount: controller.tasks.length,
+        childCount: controller.entities.length,
       ),
     );
   }
@@ -196,7 +194,7 @@ class DownloadPage extends GetView<DownloadController> {
       physics: AlwaysScrollableScrollPhysics(),
       slivers: <Widget>[
         SliverToBoxAdapter(
-          child: controller.tasks.isNotEmpty
+          child: controller.entities.isNotEmpty
               ? Container(
                   padding: CommonUtils.isPad
                       ? EdgeInsets.only(left: 40, top: 30.h, bottom: 10.h)

@@ -89,7 +89,7 @@ class ObjectHelper {
         Get.until((route) => Get.currentRoute.startsWith(Routes.DETAIL));
         break;
       case PageSource.HOMEPAGE:
-        await Get.find<HomepageController>().getObjectList(refresh: refresh);
+        await Get.find<HomepageController>().getObjectList();
         Get.until((route) => Get.currentRoute.startsWith(Routes.HOMEPAGE));
         break;
       case PageSource.DIRECTORY:

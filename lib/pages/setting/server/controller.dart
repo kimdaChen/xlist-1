@@ -118,7 +118,7 @@ class ServerController extends GetxController {
     if (_homepageController.serverId.value == id) {
       _homepageController.serverId.value = 0;
       _homepageController.userInfo.value = UserModel();
-      _homepageController.objects.clear();
+      _homepageController.objects.value.clear();
     }
 
     // 设置页面
