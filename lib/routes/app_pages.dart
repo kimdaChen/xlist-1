@@ -17,13 +17,15 @@ import 'package:xlist/pages/setting/server/index.dart';
 import 'package:xlist/pages/setting/preview/index.dart';
 import 'package:xlist/pages/setting/favorite/index.dart';
 import 'package:xlist/pages/setting/download/index.dart';
+import 'package:xlist/pages/image_gallery/image_gallery_page.dart';
+import 'package:xlist/pages/image_gallery/image_gallery_binding.dart';
 
 part 'app_routes.dart';
 
 class AppPages {
   AppPages._();
 
-  static const INITIAL = _Paths.HOMEPAGE; // 修改初始路由为 TestPage
+  static const INITIAL = _Paths.HOMEPAGE;
 
   static final routes = [
     GetPage(
@@ -31,6 +33,11 @@ class AppPages {
       page: () => Homepage(),
       binding: HomepageBinding(),
       transitionDuration: Duration.zero,
+    ),
+    GetPage(
+      name: '/image_gallery',
+      page: () => ImageGalleryPage(),
+      binding: ImageGalleryBinding(),
     ),
     GetPage(
       name: _Paths.DETAIL,

@@ -31,8 +31,6 @@ class Global {
     // Init FlutterBinding
     WidgetsFlutterBinding.ensureInitialized();
 
-    // HttpOverrides
-    HttpOverrides.global = XlistHttpOverrides();
 
     // GetStorage
     await GetStorage.init();
@@ -50,16 +48,6 @@ class Global {
     await Get.putAsync(() => DeviceInfoService().init());
     await Get.putAsync(() => PlayerNotificationService().init()); // 取消注释
 
-    // 读取设备第一次打开
-    final isFirstOpen = Get.find<PreferencesStorage>().isFirstOpen;
-    if (isFirstOpen.val == true) {
-      isFirstOpen.val = false;
-
-      // IOS 请求联网弹窗
-      try {
-        // if (GetPlatform.isIOS) DioService.to.dio.get('https://xlist.site'); // 暂时注释
-      } catch (e) {}
-    }
 
     // Theme
     Get.changeThemeMode(ThemeModeMap[Get.find<CommonStorage>().themeMode.val]!);
@@ -70,18 +58,5 @@ class Global {
           const SystemUiOverlayStyle(statusBarColor: Colors.transparent);
       SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
     }
-  }
-}
-
-class XlistHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    // allowLegacyUnsafeRenegotiation
-    final SecurityContext sc = SecurityContext();
-    sc.allowLegacyUnsafeRenegotiation = true;
-
-    return super.createHttpClient(sc)
-      ..badCertificateCallback =
-          (X509Certificate cert, String host, int port) => true;
   }
 }

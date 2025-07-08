@@ -54,7 +54,14 @@ class _AddServerBottomSheetState extends State<AddServerBottomSheet> {
 
     // 判断是否是 http 或者 https 开头
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      url = 'http://$url';
+      try {
+        // 尝试 https
+        await Dio().get('https://${url}/api/me');
+        url = 'https://$url';
+      } catch (e) {
+        // 如果 https 失败，则使用 http
+        url = 'http://$url';
+      }
       _urlController.text = url;
     }
 
@@ -105,7 +112,14 @@ class _AddServerBottomSheetState extends State<AddServerBottomSheet> {
 
       // 判断是否是 http 或者 https 开头
       if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        url = 'http://$url';
+        try {
+          // 尝试 https
+          await Dio().post('https://${url}/api/auth/login', data: {'username': username, 'password': password});
+          url = 'https://$url';
+        } catch (e) {
+          // 如果 https 失败，则使用 http
+          url = 'http://$url';
+        }
         _urlController.text = url;
       }
 

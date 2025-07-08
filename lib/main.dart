@@ -27,15 +27,6 @@ class XlistApp extends StatelessWidget {
         initialRoute: AppPages.INITIAL,
         defaultTransition: Transition.cupertino,
         debugShowCheckedModeBanner: false,
-        home: GetRouterOutlet.builder(
-          builder: (context, delegate, currentRoute) {
-            final currentLocation = currentRoute?.location;
-            if (currentLocation != null) {
-              print('The route path is $currentLocation');
-            }
-            return const SizedBox();
-          },
-        ),
         getPages: AppPages.routes,
         unknownRoute: AppPages.unknownRoute,
         builder: (BuildContext context, Widget? child) {
