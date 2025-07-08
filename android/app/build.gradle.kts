@@ -1,11 +1,13 @@
+import java.util.Properties
+
 buildscript {
-    ext.kotlin_version = '1.9.23'
+    val kotlin_version by extra("1.9.23")
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlin_version}")
     }
 }
 
@@ -58,7 +60,7 @@ android {
             // keyPassword=your_key_password
             val keystorePropertiesFile = rootProject.file("keystore.properties")
             if (keystorePropertiesFile.exists()) {
-                val properties = java.util.Properties()
+                val properties = Properties()
                 properties.load(keystorePropertiesFile.inputStream())
                 storeFile = file(properties.getProperty("storeFile"))
                 storePassword = properties.getProperty("storePassword")
