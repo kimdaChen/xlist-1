@@ -11,11 +11,11 @@ android {
     defaultConfig {
         javaCompileOptions {
             annotationProcessorOptions {
-                arguments += [
-                        "room.schemaLocation":"$projectDir/schemas".toString(),
-                        "room.incremental":"true",
-                        "room.expandSecretCreators":"false",
-                ]
+                arguments += mapOf(
+                        "room.schemaLocation" to "$projectDir/schemas".toString(),
+                        "room.incremental" to "true",
+                        "room.expandSecretCreators" to "false"
+                )
             }
         }
     }
