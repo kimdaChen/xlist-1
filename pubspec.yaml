@@ -35,7 +35,7 @@ dependencies:
   url_launcher: any
   image_picker: any
   easy_refresh: any
-  infinite_scroll_pagination: any
+  infinite_scroll_pagination: ^4.0.0
   toggle_switch: any
   vivysub_utils: any
   path_provider: any

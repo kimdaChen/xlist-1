@@ -40,7 +40,7 @@ class RecentController extends GetxController {
         final nextPageKey = pageKey + 1;
         pagingController.appendPage(newItems, nextPageKey);
       }
-      isEmpty.value = pagingController.itemList?.isEmpty ?? true;
+      isEmpty.value = (pagingController.itemList ?? []).isEmpty;
     } catch (error) {
       pagingController.error = error;
     }
@@ -61,7 +61,7 @@ class RecentController extends GetxController {
     try {
       await DatabaseService.to.database.recentDao.deleteRecentById(entity.id!);
       pagingController.refresh();
-      isEmpty.value = pagingController.itemList?.isEmpty ?? true;
+      isEmpty.value = (pagingController.itemList ?? []).isEmpty;
       SmartDialog.showToast('toast_remove_success'.tr);
     } catch (e) {
       SmartDialog.showToast(e.toString());
